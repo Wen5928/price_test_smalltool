@@ -21,71 +21,71 @@ export default function ExplanationText({ comparisonData }: ExplanationTextProps
   return (
     <div className="bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg">
       <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
-        所以，為什麼需要 A/B Testing？
+        So, Why Do You Need A/B Testing?
       </h2>
       
       <div className="space-y-4 text-gray-700">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div className="bg-blue-100 p-4 rounded border-l-4 border-blue-500">
-            <h3 className="font-semibold text-blue-800">價格 A: ${priceA.price}</h3>
+            <h3 className="font-semibold text-blue-800">Price A: ${priceA.price}</h3>
             <ul className="mt-2 space-y-1 text-sm">
-              <li>轉換率: {priceA.conversionRate.toFixed(2)}%</li>
-              <li>收益: ${priceA.revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</li>
-              <li>利潤: ${priceA.profit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</li>
+              <li>Conversion Rate: {priceA.conversionRate.toFixed(2)}%</li>
+              <li>Revenue: ${priceA.revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</li>
+              <li>Profit: ${priceA.profit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</li>
             </ul>
           </div>
           
           <div className="bg-green-100 p-4 rounded border-l-4 border-green-500">
-            <h3 className="font-semibold text-green-800">價格 B: ${priceB.price}</h3>
+            <h3 className="font-semibold text-green-800">Price B: ${priceB.price}</h3>
             <ul className="mt-2 space-y-1 text-sm">
-              <li>轉換率: {priceB.conversionRate.toFixed(2)}%</li>
-              <li>收益: ${priceB.revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</li>
-              <li>利潤: ${priceB.profit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</li>
+              <li>Conversion Rate: {priceB.conversionRate.toFixed(2)}%</li>
+              <li>Revenue: ${priceB.revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</li>
+              <li>Profit: ${priceB.profit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</li>
             </ul>
           </div>
         </div>
 
         <div className="bg-white p-4 rounded shadow-sm">
-          <h3 className="font-semibold mb-3">📊 數據分析顯示：</h3>
+          <h3 className="font-semibold mb-3">📊 Data Analysis Shows:</h3>
           <ul className="space-y-2">
-            <li>• <strong>轉換率差異：</strong>{conversionDiff.toFixed(2)}% 
-              （價格 {betterPrice} 的轉換率{betterData.conversionRate > worseData.conversionRate ? '更高' : '更低'}）</li>
-            <li>• <strong>收益差異：</strong>${revenueDiff.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} 
-              （價格 {betterPrice} 帶來更多收益）</li>
-            <li>• <strong>利潤提升：</strong>{profitImprovement.toFixed(2)}% 
-              （選擇價格 {betterPrice} 可提升利潤 ${profitDiff.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}）</li>
+            <li>• <strong>Conversion Rate Difference:</strong> {conversionDiff.toFixed(2)}% 
+              (Price {betterPrice} has {betterData.conversionRate > worseData.conversionRate ? 'higher' : 'lower'} conversion rate)</li>
+            <li>• <strong>Revenue Difference:</strong> ${revenueDiff.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} 
+              (Price {betterPrice} generates more revenue)</li>
+            <li>• <strong>Profit Improvement:</strong> {profitImprovement.toFixed(2)}% 
+              (Choosing Price {betterPrice} can increase profit by ${profitDiff.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})</li>
           </ul>
         </div>
 
         <div className="bg-yellow-50 p-4 rounded border-l-4 border-yellow-400">
-          <h3 className="font-semibold text-yellow-800 mb-2">⚠️ 但是，這只是理論模擬！</h3>
+          <h3 className="font-semibold text-yellow-800 mb-2">⚠️ However, This is Just a Theoretical Simulation!</h3>
           <p className="text-sm">
-            真實市場中的客戶行為可能與假設的正態分佈不同，還會受到品牌認知、競爭對手、季節性等多種因素影響。
-            唯有透過實際的 A/B Testing，才能獲得真實可靠的數據。
+            Real market customer behavior may differ from the assumed normal distribution and can be influenced by various factors such as brand perception, competitors, seasonality, and more.
+            Only through actual A/B Testing can you obtain reliable, real-world data.
           </p>
         </div>
 
         <div className="bg-indigo-50 p-4 rounded border-l-4 border-indigo-400">
-          <h3 className="font-semibold text-indigo-800 mb-2">🎯 A/B Testing 的價值：</h3>
+          <h3 className="font-semibold text-indigo-800 mb-2">🎯 The Value of A/B Testing:</h3>
           <ul className="text-sm space-y-1">
-            <li>✓ 驗證理論假設與實際結果的差異</li>
-            <li>✓ 降低價格調整的風險</li>
-            <li>✓ 獲得統計上顯著的結果</li>
-            <li>✓ 了解真實客戶的價格敏感度</li>
-            <li>✓ 為未來定價策略提供數據支持</li>
+            <li>✓ Validate the difference between theoretical assumptions and actual results</li>
+            <li>✓ Reduce the risk of price adjustments</li>
+            <li>✓ Obtain statistically significant results</li>
+            <li>✓ Understand real customer price sensitivity</li>
+            <li>✓ Provide data support for future pricing strategies</li>
           </ul>
         </div>
 
         <div className="text-center mt-6">
           <p className="text-lg font-medium text-gray-800">
-            別讓價格猜測影響您的營收！
+            Don't let price guessing impact your revenue!
           </p>
           <p className="text-gray-600 mt-2">
-            根據模擬結果，正確的價格選擇可能為您帶來 <strong>{profitImprovement.toFixed(2)}%</strong> 的利潤提升。
-            立即開始 A/B Testing，將模擬轉化為實際收益。
+            According to the simulation results, the right price choice could bring you a <strong>{profitImprovement.toFixed(2)}%</strong> profit improvement.
+            Start A/B Testing now and turn simulation into actual revenue.
           </p>
           <p className="text-gray-600 mt-2">
-            想了解更多關於 A/B Testing 的資訊嗎？歡迎參考
+            Want to learn more about A/B Testing? Check out
             <a href="https://www.abconvert.io/" target="_blank" rel="noopener noreferrer" className="text-blue-500 underline ml-1">ABConvert</a>
           </p>
 
