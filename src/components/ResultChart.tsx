@@ -29,10 +29,10 @@ export default function ResultChart({ data, priceA, priceB }: ResultChartProps) 
       <ResponsiveContainer width="100%" height="100%">
         <LineChart 
           data={data}
-          margin={{ top: 50, right: 30, left: 20, bottom: 50 }}
+          margin={{ top: 50, right: 30, left: 20, bottom: 80 }}
         >
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="price" label={{ value: 'Price', position: 'insideBottom', offset: -10 }} />
+          <XAxis dataKey="price" label={{ value: 'Price', position: 'insideBottom', offset: -5 }} />
           <YAxis yAxisId="left" label={{ value: 'Revenue / Profit', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle' }, dx: -10 }} />
           <YAxis yAxisId="right" orientation="right" label={{ value: 'Conversion Rate (%)', angle: -90, position: 'insideRight', style: { textAnchor: 'middle' } }} />
           <Tooltip 
@@ -42,7 +42,7 @@ export default function ResultChart({ data, priceA, priceB }: ResultChartProps) 
             ]}
             labelFormatter={(label) => `Price: $${label}`}
           />
-          <Legend verticalAlign="bottom" height={10} />
+          <Legend verticalAlign="bottom" height={36} wrapperStyle={{ paddingTop: '30px' }} />
           
           {/* Price range highlighting */}
           {minPrice && maxPrice && (
