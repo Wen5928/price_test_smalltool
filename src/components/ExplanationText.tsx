@@ -84,6 +84,11 @@ export default function ExplanationText({ comparisonData }: ExplanationTextProps
             根據模擬結果，正確的價格選擇可能為您帶來 <strong>{profitImprovement.toFixed(2)}%</strong> 的利潤提升。
             立即開始 A/B Testing，將模擬轉化為實際收益。
           </p>
+          <p className="text-gray-600 mt-2">
+            想了解更多關於 A/B Testing 的資訊嗎？歡迎參考
+            <a href="https://www.abconvert.io/" target="_blank" rel="noopener noreferrer" className="text-blue-500 underline ml-1">ABConvert</a>
+          </p>
+
         </div>
       </div>
     </div>
