@@ -1,5 +1,7 @@
 import React from 'react';
 
+export type OECType = 'revenue' | 'profit' | 'conversion';
+
 interface InputPanelProps {
   mu: number;
   setMu: (value: number) => void;
@@ -13,10 +15,8 @@ interface InputPanelProps {
   setMinPrice: (value: number) => void;
   maxPrice: number;
   setMaxPrice: (value: number) => void;
-  priceA: number;
-  setPriceA: (value: number) => void;
-  priceB: number;
-  setPriceB: (value: number) => void;
+  oec: OECType;
+  setOec: (value: OECType) => void;
 }
 
 export default function InputPanel({
@@ -26,8 +26,7 @@ export default function InputPanel({
   traffic, setTraffic,
   minPrice, setMinPrice,
   maxPrice, setMaxPrice,
-  priceA, setPriceA,
-  priceB, setPriceB
+  oec, setOec
 }: InputPanelProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -57,15 +56,40 @@ export default function InputPanel({
       </label>
       
       <div className="sm:col-span-2 border-t pt-4 mt-4">
-        <h3 className="text-lg font-medium mb-3 text-center">Price Comparison</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <label>
-            Price A:
-            <input type="number" value={priceA} onChange={e => setPriceA(e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)} className="w-full border px-3 py-1 rounded bg-blue-50" />
+        <h3 className="text-lg font-medium mb-3 text-center">Overall Evaluation Criterion (OEC)</h3>
+        <div className="flex justify-center space-x-4">
+          <label className="flex items-center space-x-2">
+            <input 
+              type="radio" 
+              name="oec" 
+              value="revenue" 
+              checked={oec === 'revenue'} 
+              onChange={(e) => setOec(e.target.value as OECType)}
+              className="text-blue-600"
+            />
+            <span>Maximize Revenue</span>
           </label>
-          <label>
-            Price B:
-            <input type="number" value={priceB} onChange={e => setPriceB(e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)} className="w-full border px-3 py-1 rounded bg-green-50" />
+          <label className="flex items-center space-x-2">
+            <input 
+              type="radio" 
+              name="oec" 
+              value="profit" 
+              checked={oec === 'profit'} 
+              onChange={(e) => setOec(e.target.value as OECType)}
+              className="text-green-600"
+            />
+            <span>Maximize Profit</span>
+          </label>
+          <label className="flex items-center space-x-2">
+            <input 
+              type="radio" 
+              name="oec" 
+              value="conversion" 
+              checked={oec === 'conversion'} 
+              onChange={(e) => setOec(e.target.value as OECType)}
+              className="text-orange-600"
+            />
+            <span>Maximize Conversion Rate</span>
           </label>
         </div>
       </div>

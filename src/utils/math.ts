@@ -41,10 +41,16 @@ export function generateChartData(
 ): ChartPoint[] {
   const result: ChartPoint[] = [];
 
-  for (let price = minPrice; price <= maxPrice; price++) {
-    const convRate = normCDF(mu - price, 0, sigma);
-    const revenue = price * traffic * convRate;
-    const profit = (price - cost) * traffic * convRate;
+  // Ensure valid inputs and price range
+  const safeMinPrice = Math.max(minPrice || 1, 0.01);
+  const safeMaxPrice = Math.max(maxPrice || safeMinPrice + 10, safeMinPrice);
+  const safeSigma = Math.max(sigma || 1, 0.01);
+  const safeTraffic = Math.max(traffic || 1000, 1);
+
+  for (let price = safeMinPrice; price <= safeMaxPrice; price++) {
+    const convRate = normCDF(mu - price, 0, safeSigma);
+    const revenue = price * safeTraffic * convRate;
+    const profit = (price - cost) * safeTraffic * convRate;
 
     result.push({
       price,
@@ -64,10 +70,98 @@ interface ComparisonPoint {
   profit: number;
 }
 
+export type OECType = 'revenue' | 'profit' | 'conversion';
+
+export interface OptimalPrice {
+  price: number;
+  conversionRate: number;
+  revenue: number;
+  profit: number;
+  metric: string;
+  value: number;
+}
+
 export interface ComparisonData {
   priceA: ComparisonPoint;
   priceB: ComparisonPoint;
   chartData: ChartPoint[];
+}
+
+export interface EnhancedChartData {
+  chartData: ChartPoint[];
+  optimalPrice: OptimalPrice;
+}
+
+export function generateEnhancedChartData(
+  mu: number,
+  sigma: number,
+  cost: number,
+  traffic: number,
+  minPrice: number,
+  maxPrice: number,
+  oec: OECType
+): EnhancedChartData {
+  const chartData = generateChartData(mu, sigma, cost, traffic, minPrice, maxPrice);
+  
+  // Handle empty chartData case
+  if (chartData.length === 0) {
+    const fallbackPrice = Math.max(minPrice, 1);
+    const fallbackConvRate = normCDF(mu - fallbackPrice, 0, sigma);
+    const fallbackRevenue = fallbackPrice * traffic * fallbackConvRate;
+    const fallbackProfit = (fallbackPrice - cost) * traffic * fallbackConvRate;
+    
+    return {
+      chartData: [],
+      optimalPrice: {
+        price: fallbackPrice,
+        conversionRate: fallbackConvRate * 100,
+        revenue: fallbackRevenue,
+        profit: fallbackProfit,
+        metric: oec === 'revenue' ? 'Revenue' : oec === 'profit' ? 'Profit' : 'Conversion Rate',
+        value: oec === 'revenue' ? fallbackRevenue : oec === 'profit' ? fallbackProfit : fallbackConvRate * 100
+      }
+    };
+  }
+  
+  let optimalPoint = chartData[0];
+  let metricName = '';
+  
+  switch (oec) {
+    case 'revenue':
+      metricName = 'Revenue';
+      optimalPoint = chartData.reduce((max, current) => 
+        current.revenue > max.revenue ? current : max
+      );
+      break;
+    case 'profit':
+      metricName = 'Profit';
+      optimalPoint = chartData.reduce((max, current) => 
+        current.profit > max.profit ? current : max
+      );
+      break;
+    case 'conversion':
+      metricName = 'Conversion Rate';
+      optimalPoint = chartData.reduce((max, current) => 
+        current.conversionRate > max.conversionRate ? current : max
+      );
+      break;
+  }
+  
+  const optimalPrice: OptimalPrice = {
+    price: optimalPoint.price,
+    conversionRate: optimalPoint.conversionRate,
+    revenue: optimalPoint.revenue,
+    profit: optimalPoint.profit,
+    metric: metricName,
+    value: oec === 'revenue' ? optimalPoint.revenue : 
+           oec === 'profit' ? optimalPoint.profit : 
+           optimalPoint.conversionRate
+  };
+  
+  return {
+    chartData,
+    optimalPrice
+  };
 }
 
 export function generateComparisonData(
