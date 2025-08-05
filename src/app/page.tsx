@@ -6,7 +6,7 @@ import ResultChart from '@/components/ResultChart';
 import ExplanationText from '@/components/ExplanationText';
 import ComparisonTable from '@/components/ComparisonTable';
 // import ExportSummary from '@/components/ExportSummary';  // Currently not in use
-import { generateComparisonData, generateEnhancedChartData, type OECType }  from '@/utils/math';
+import { generateComparisonData, generateChartData }  from '@/utils/math';
 
 export default function Home() {
   const [mu, setMu] = useState(30);
@@ -17,9 +17,8 @@ export default function Home() {
   const [maxPrice, setMaxPrice] = useState(50);
   const [priceA, setPriceA] = useState(25);
   const [priceB, setPriceB] = useState(35);
-  const [oec, setOec] = useState<OECType>('profit');
 
-  const enhancedChartData = generateEnhancedChartData(mu, sigma, cost, traffic, minPrice, maxPrice, oec);
+  const chartData = generateChartData(mu, sigma, cost, traffic, minPrice, maxPrice);
   const comparisonData = generateComparisonData(mu, sigma, cost, traffic, minPrice, maxPrice, priceA, priceB);
 
   return (
@@ -60,8 +59,6 @@ export default function Home() {
                   setMinPrice={setMinPrice}
                   maxPrice={maxPrice}
                   setMaxPrice={setMaxPrice}
-                  oec={oec}
-                  setOec={setOec}
                 />
               </div>
             </section>
@@ -84,60 +81,19 @@ export default function Home() {
               <h2 className="text-2xl font-semibold mb-4">Result Chart</h2>
               <div className="border border-gray-200 rounded p-4 bg-gray-50">
                 <ResultChart 
-                  data={enhancedChartData.chartData} 
+                  data={chartData} 
                   priceA={priceA} 
                   priceB={priceB} 
                   setPriceA={setPriceA}
                   setPriceB={setPriceB}
                   minPrice={minPrice}
                   maxPrice={maxPrice}
-                  optimalPrice={enhancedChartData.optimalPrice}
                 />
               </div>
             </section>
           </div>
         </div>
 
-        {/* OEC Conclusion - Full width */}
-        <section>
-          <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
-            <h3 className="text-lg font-semibold mb-2 text-center">🎯 Optimal Price Analysis</h3>
-            <p className="text-center text-gray-700">
-              Based on your selected OEC: <strong>Maximize {enhancedChartData.optimalPrice.metric}</strong>, 
-              the best simulated price is: <strong>${enhancedChartData.optimalPrice.price}</strong>
-            </p>
-            <div className="mt-2 text-center text-sm text-gray-600">
-              Expected {enhancedChartData.optimalPrice.metric}: <strong>
-                {enhancedChartData.optimalPrice.metric === 'Revenue' ? `$${enhancedChartData.optimalPrice.revenue.toFixed(2)}` :
-                 enhancedChartData.optimalPrice.metric === 'Profit' ? `$${enhancedChartData.optimalPrice.profit.toFixed(2)}` :
-                 `${enhancedChartData.optimalPrice.conversionRate.toFixed(2)}%`}
-              </strong>
-            </div>
-            
-            {/* A/B Individual Data */}
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-blue-50 p-4 rounded border-l-4 border-blue-500">
-                <h4 className="font-semibold text-blue-800">📊 Price A Details (${priceA})</h4>
-                <div className="mt-2 space-y-1 text-sm text-blue-700">
-                  <div>Conversion Rate: <strong>{comparisonData.priceA.conversionRate.toFixed(2)}%</strong></div>
-                  <div>Revenue: <strong>${comparisonData.priceA.revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></div>
-                  <div>Profit: <strong>${comparisonData.priceA.profit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></div>
-                  <div>Profit Margin: <strong>{((comparisonData.priceA.profit / comparisonData.priceA.revenue) * 100).toFixed(1)}%</strong></div>
-                </div>
-              </div>
-              
-              <div className="bg-green-50 p-4 rounded border-l-4 border-green-500">
-                <h4 className="font-semibold text-green-800">📊 Price B Details (${priceB})</h4>
-                <div className="mt-2 space-y-1 text-sm text-green-700">
-                  <div>Conversion Rate: <strong>{comparisonData.priceB.conversionRate.toFixed(2)}%</strong></div>
-                  <div>Revenue: <strong>${comparisonData.priceB.revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></div>
-                  <div>Profit: <strong>${comparisonData.priceB.profit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></div>
-                  <div>Profit Margin: <strong>{((comparisonData.priceB.profit / comparisonData.priceB.revenue) * 100).toFixed(1)}%</strong></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
 
         {/* Export Summary section - Currently not in use */}
         {/* 

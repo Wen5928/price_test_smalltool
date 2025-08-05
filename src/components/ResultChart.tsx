@@ -31,7 +31,6 @@ interface ResultChartProps {
   setPriceB: (value: number) => void;
   minPrice: number;
   maxPrice: number;
-  optimalPrice?: OptimalPrice;
 }
 
 export default function ResultChart({ 
@@ -41,8 +40,7 @@ export default function ResultChart({
   setPriceA, 
   setPriceB, 
   minPrice, 
-  maxPrice, 
-  optimalPrice 
+  maxPrice
 }: ResultChartProps) {
   const priceRange = { min: Math.min(priceA, priceB), max: Math.max(priceA, priceB) };
 
@@ -51,7 +49,6 @@ export default function ResultChart({
     const range = maxPrice - minPrice;
     const priceAPercent = ((priceA - minPrice) / range) * 100;
     const priceBPercent = ((priceB - minPrice) / range) * 100;
-    const optimalPercent = optimalPrice ? ((optimalPrice.price - minPrice) / range) * 100 : null;
 
     const handlePriceAChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       setPriceA(parseFloat(e.target.value));
@@ -70,14 +67,6 @@ export default function ResultChart({
         <div className="relative mb-6 px-3">
           {/* Price range bar background */}
           <div className="w-full h-2 bg-gray-200 rounded-full relative overflow-hidden">
-            {/* Optimal price indicator */}
-            {optimalPercent !== null && (
-              <div 
-                className="absolute top-0 w-1 h-full bg-yellow-500 z-10"
-                style={{ left: `${optimalPercent}%` }}
-              />
-            )}
-            
             {/* Range between A and B */}
             <div 
               className="absolute top-0 h-full bg-gradient-to-r from-blue-300 to-green-300 opacity-50"
@@ -112,18 +101,6 @@ export default function ResultChart({
               </div>
             </div>
 
-            {/* Optimal price marker */}
-            {optimalPercent !== null && (
-              <div 
-                className="absolute transform -translate-x-1/2"
-                style={{ left: `${optimalPercent}%` }}
-              >
-                <div className="w-2 h-5 bg-yellow-500 rounded border-2 border-white shadow-lg"></div>
-                <div className="text-xs font-semibold text-yellow-600 mt-1 text-center whitespace-nowrap">
-                  🎯 ${optimalPrice?.price}
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
@@ -201,7 +178,6 @@ export default function ResultChart({
             ]}
             labelFormatter={(label) => `Price: $${label}`}
           />
-          <Legend verticalAlign="bottom" height={36} wrapperStyle={{ paddingTop: '30px' }} />
           
           {/* Price range highlighting */}
           {priceRange && (
@@ -227,15 +203,6 @@ export default function ResultChart({
             strokeWidth={3} 
             strokeDasharray="5 5" 
           />
-          
-          {optimalPrice && (
-            <ReferenceLine 
-              x={optimalPrice.price} 
-              stroke="#f59e0b" 
-              strokeWidth={4} 
-              strokeDasharray="8 4" 
-            />
-          )}
           
           {/* Gradient definition */}
           <defs>

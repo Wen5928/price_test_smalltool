@@ -21,7 +21,7 @@ export default function ExplanationText({ comparisonData }: ExplanationTextProps
   return (
     <div className="bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg">
       <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
-        So, Why Do You Need A/B Testing?
+        So, Why We Need A/B Testing?
       </h2>
       
       <div className="space-y-4 text-gray-700">
@@ -32,6 +32,7 @@ export default function ExplanationText({ comparisonData }: ExplanationTextProps
               <li>Conversion Rate: {priceA.conversionRate.toFixed(2)}%</li>
               <li>Revenue: ${priceA.revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</li>
               <li>Profit: ${priceA.profit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</li>
+              <li>Profit Margin: {((priceA.profit / priceA.revenue) * 100).toFixed(1)}%</li>
             </ul>
           </div>
           
@@ -41,6 +42,7 @@ export default function ExplanationText({ comparisonData }: ExplanationTextProps
               <li>Conversion Rate: {priceB.conversionRate.toFixed(2)}%</li>
               <li>Revenue: ${priceB.revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</li>
               <li>Profit: ${priceB.profit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</li>
+              <li>Profit Margin: {((priceB.profit / priceB.revenue) * 100).toFixed(1)}%</li>
             </ul>
           </div>
         </div>
