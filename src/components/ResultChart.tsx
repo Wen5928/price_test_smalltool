@@ -93,13 +93,13 @@ export default function ResultChart({
               </div>
             </div>
 
-            {/* Price B label */}
+            {/* New Price label */}
             <div 
               className="absolute transform -translate-x-1/2"
               style={{ left: `${priceBPercent}%` }}
             >
               <div className="text-xs font-semibold text-green-600 text-center whitespace-nowrap">
-                B: ${priceB}
+                New: ${priceB}
               </div>
             </div>
           </div>
@@ -129,9 +129,9 @@ export default function ResultChart({
             </div>
           </div>
 
-          {/* Price B slider */}
+          {/* New Price slider */}
           <div className="flex items-center space-x-3 mx-3">
-            <label className="w-24 text-sm font-medium text-green-700">Price B:</label>
+            <label className="w-24 text-sm font-medium text-green-700">New Price:</label>
             <div className="flex-1 relative">
               <input
                 type="range"
@@ -190,7 +190,14 @@ export default function ResultChart({
             />
           )}
           
-          <Line type="monotone" dataKey="conversionRate" stroke="#8b5cf6" name="Conversion Rate" strokeWidth={3} dot={{ fill: '#8b5cf6', r: 3 }} />
+          <Line 
+            type="monotone" 
+            dataKey="conversionRate" 
+            stroke="#1e40af" 
+            name="Conversion Rate" 
+            strokeWidth={3} 
+            dot={false}
+          />
           
           <ReferenceLine 
             x={priceA} 

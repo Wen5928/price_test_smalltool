@@ -40,7 +40,10 @@ export function generateChartData(
   maxPrice: number,
   cogs: number = 0,
   shippingFee: number = 0,
-  transactionFeePercent: number = 0
+  transactionFeePercent: number = 0,
+  actualConversionRate?: number,
+  gmv?: number,
+  originalPrice?: number
 ): ChartPoint[] {
   const result: ChartPoint[] = [];
 
@@ -50,8 +53,30 @@ export function generateChartData(
   const safeSigma = Math.max(sigma || 1, 0.01);
   const safeTraffic = Math.max(traffic || 1000, 1);
 
+  // If actual conversion rate is provided, use it as base for calculations
+  let baseConversionRate: number;
+  if (actualConversionRate !== undefined && originalPrice !== undefined) {
+    // Calculate the base conversion rate at original price from actual data
+    baseConversionRate = actualConversionRate / 100;
+  } else {
+    // Fall back to theoretical model
+    baseConversionRate = normCDF(mu - (originalPrice || mu), 0, safeSigma);
+  }
+
   for (let price = safeMinPrice; price <= safeMaxPrice; price++) {
-    const convRate = normCDF(mu - price, 0, safeSigma);
+    let convRate: number;
+    
+    if (actualConversionRate !== undefined && originalPrice !== undefined) {
+      // Calculate conversion rate based on price elasticity from actual data
+      const theoreticalOriginal = normCDF(mu - originalPrice, 0, safeSigma);
+      const theoreticalNew = normCDF(mu - price, 0, safeSigma);
+      const conversionMultiplier = theoreticalOriginal > 0 ? theoreticalNew / theoreticalOriginal : 1;
+      convRate = baseConversionRate * conversionMultiplier;
+    } else {
+      // Use pure theoretical model
+      convRate = normCDF(mu - price, 0, safeSigma);
+    }
+    
     const revenue = price * safeTraffic * convRate;
     const transactionFee = price * (transactionFeePercent / 100);
     const totalCost = (cogs || cost) + shippingFee + transactionFee;
@@ -107,9 +132,12 @@ export function generateEnhancedChartData(
   oec: OECType,
   cogs: number = 0,
   shippingFee: number = 0,
-  transactionFeePercent: number = 0
+  transactionFeePercent: number = 0,
+  actualConversionRate?: number,
+  gmv?: number,
+  originalPrice?: number
 ): EnhancedChartData {
-  const chartData = generateChartData(mu, sigma, cost, traffic, minPrice, maxPrice, cogs, shippingFee, transactionFeePercent);
+  const chartData = generateChartData(mu, sigma, cost, traffic, minPrice, maxPrice, cogs, shippingFee, transactionFeePercent, actualConversionRate, gmv, originalPrice);
   
   // Handle empty chartData case
   if (chartData.length === 0) {
@@ -185,19 +213,36 @@ export function generateComparisonData(
   priceB: number,
   cogs: number = 0,
   shippingFee: number = 0,
-  transactionFeePercent: number = 0
+  transactionFeePercent: number = 0,
+  actualConversionRate?: number,
+  gmv?: number
 ): ComparisonData {
-  const chartData = generateChartData(mu, sigma, cost, traffic, minPrice, maxPrice, cogs, shippingFee, transactionFeePercent);
+  const chartData = generateChartData(mu, sigma, cost, traffic, minPrice, maxPrice, cogs, shippingFee, transactionFeePercent, actualConversionRate, gmv, priceA);
   
   const calculatePoint = (price: number): ComparisonPoint => {
-    const convRate = normCDF(mu - price, 0, sigma);
+    let convRate: number;
+    
+    if (actualConversionRate !== undefined && priceA !== undefined) {
+      // Calculate conversion rate based on price elasticity from actual data
+      const theoreticalOriginal = normCDF(mu - priceA, 0, sigma);
+      const theoreticalNew = normCDF(mu - price, 0, sigma);
+      const conversionMultiplier = theoreticalOriginal > 0 ? theoreticalNew / theoreticalOriginal : 1;
+      convRate = (actualConversionRate / 100) * conversionMultiplier;
+    } else {
+      // Use pure theoretical model
+      convRate = normCDF(mu - price, 0, sigma);
+    }
+    
     const transactionFee = price * (transactionFeePercent / 100);
     const totalCost = (cogs || cost) + shippingFee + transactionFee;
+    const revenue = price * traffic * convRate;
+    const profit = (price - totalCost) * traffic * convRate;
+    
     return {
       price,
       conversionRate: convRate * 100,
-      revenue: price * traffic * convRate,
-      profit: (price - totalCost) * traffic * convRate,
+      revenue,
+      profit,
     };
   };
 

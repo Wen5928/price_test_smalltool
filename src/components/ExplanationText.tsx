@@ -12,7 +12,7 @@ export default function ExplanationText({ comparisonData }: ExplanationTextProps
   const revenueDiff = Math.abs(priceA.revenue - priceB.revenue);
   const profitDiff = Math.abs(priceA.profit - priceB.profit);
   
-  const betterPrice = priceA.profit > priceB.profit ? 'Original' : 'B';
+  const betterPrice = priceA.profit > priceB.profit ? 'Original' : 'New';
   const betterData = betterPrice === 'Original' ? priceA : priceB;
   const worseData = betterPrice === 'Original' ? priceB : priceA;
   
@@ -37,7 +37,7 @@ export default function ExplanationText({ comparisonData }: ExplanationTextProps
           </div>
           
           <div className="bg-green-100 p-4 rounded border-l-4 border-green-500">
-            <h3 className="font-semibold text-green-800">Price B: ${priceB.price}</h3>
+            <h3 className="font-semibold text-green-800">New Price: ${priceB.price}</h3>
             <ul className="mt-2 space-y-1 text-sm">
               <li>Conversion Rate: {priceB.conversionRate.toFixed(2)}%</li>
               <li>Revenue: ${priceB.revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</li>

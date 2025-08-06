@@ -17,7 +17,7 @@ export default function Home() {
   const [cost, setCost] = useState(20);
   const [cogs, setCogs] = useState(0);
   const [shippingFee, setShippingFee] = useState(0);
-  const [transactionFeePercent, setTransactionFeePercent] = useState(2.9);
+  const [transactionFeePercent, setTransactionFeePercent] = useState(1.5);
   const [traffic, setTraffic] = useState(1000);
   const [minPrice, setMinPrice] = useState(Math.round(mu * 0.7));
   const [maxPrice, setMaxPrice] = useState(Math.round(mu * 1.3));
@@ -28,11 +28,16 @@ export default function Home() {
   const [isProductSelected, setIsProductSelected] = useState(false);
   const [gmv, setGmv] = useState(0);
   const [sellingTraffic, setSellingTraffic] = useState(1000);
-  const [conversionRate, setConversionRate] = useState(2.5);
+  const [conversionRate, setConversionRate] = useState(50);
 
-  const chartData = generateChartData(mu, sigma, cost, traffic, minPrice, maxPrice, cogs, shippingFee, transactionFeePercent);
-  const comparisonData = generateComparisonData(mu, sigma, cost, traffic, minPrice, maxPrice, priceA, priceB, cogs, shippingFee, transactionFeePercent);
-  const enhancedData = generateEnhancedChartData(mu, sigma, cost, traffic, minPrice, maxPrice, oec, cogs, shippingFee, transactionFeePercent);
+  // Use sellingTraffic for CSV mode, traffic for manual mode
+  const effectiveTraffic = inputMode === 'csv' ? sellingTraffic : traffic;
+  const effectiveConversionRate = inputMode === 'csv' && isProductSelected ? conversionRate : undefined;
+  const effectiveGmv = inputMode === 'csv' && isProductSelected ? gmv : undefined;
+  
+  const chartData = generateChartData(mu, sigma, cost, effectiveTraffic, minPrice, maxPrice, cogs, shippingFee, transactionFeePercent, effectiveConversionRate, effectiveGmv, priceA);
+  const comparisonData = generateComparisonData(mu, sigma, cost, effectiveTraffic, minPrice, maxPrice, priceA, priceB, cogs, shippingFee, transactionFeePercent, effectiveConversionRate, effectiveGmv);
+  const enhancedData = generateEnhancedChartData(mu, sigma, cost, effectiveTraffic, minPrice, maxPrice, oec, cogs, shippingFee, transactionFeePercent, effectiveConversionRate, effectiveGmv, priceA);
 
   const handleProductSelect = (product: ProductData) => {
     setCogs(product.costPerItem);
@@ -203,7 +208,16 @@ export default function Home() {
             <section className="flex flex-col">
               <h2 className="text-2xl font-semibold mb-4">Optimal Price Analysis</h2>
               <div className="flex-1">
-                <OptimalPriceConclusion optimalPrice={enhancedData.optimalPrice} oec={oec} />
+                <OptimalPriceConclusion 
+                  optimalPrice={enhancedData.optimalPrice} 
+                  oec={oec}
+                  inputMode={inputMode}
+                  sellingTraffic={sellingTraffic}
+                  conversionRate={conversionRate}
+                  shippingFee={shippingFee}
+                  transactionFeePercent={transactionFeePercent}
+                  gmv={gmv}
+                />
               </div>
             </section>
           </div>

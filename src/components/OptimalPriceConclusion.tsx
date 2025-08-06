@@ -4,9 +4,24 @@ import { OptimalPrice } from '@/utils/math';
 interface OptimalPriceConclusionProps {
   optimalPrice: OptimalPrice;
   oec: string;
+  inputMode?: string;
+  sellingTraffic?: number;
+  conversionRate?: number;
+  shippingFee?: number;
+  transactionFeePercent?: number;
+  gmv?: number;
 }
 
-export default function OptimalPriceConclusion({ optimalPrice, oec }: OptimalPriceConclusionProps) {
+export default function OptimalPriceConclusion({ 
+  optimalPrice, 
+  oec,
+  inputMode,
+  sellingTraffic,
+  conversionRate,
+  shippingFee,
+  transactionFeePercent,
+  gmv
+}: OptimalPriceConclusionProps) {
   const oecLabel = oec === 'revenue' ? 'Maximize Revenue' : 
                    oec === 'profit' ? 'Maximize Profit' : 
                    'Maximize Conversion Rate';
@@ -35,6 +50,45 @@ export default function OptimalPriceConclusion({ optimalPrice, oec }: OptimalPri
             With an estimated {oec === 'conversion' ? 'conversion rate' : oec} of: <strong className="text-lg">{metricValue}</strong>
           </p>
         </div>
+        
+        {/* Input Parameters Section (only in CSV mode) */}
+        {inputMode === 'csv' && (
+          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mt-4">
+            <h4 className="font-semibold text-blue-800 mb-2">📊 Input Parameters Used:</h4>
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              {sellingTraffic !== undefined && (
+                <div>
+                  <span className="text-gray-600">Selling Traffic:</span>
+                  <span className="font-medium ml-2">{sellingTraffic.toLocaleString()}</span>
+                </div>
+              )}
+              {conversionRate !== undefined && (
+                <div>
+                  <span className="text-gray-600">Current Conv. Rate:</span>
+                  <span className="font-medium ml-2">{conversionRate.toFixed(2)}%</span>
+                </div>
+              )}
+              {shippingFee !== undefined && (
+                <div>
+                  <span className="text-gray-600">Shipping Cost:</span>
+                  <span className="font-medium ml-2">${shippingFee.toFixed(2)}</span>
+                </div>
+              )}
+              {transactionFeePercent !== undefined && (
+                <div>
+                  <span className="text-gray-600">Transaction Fee:</span>
+                  <span className="font-medium ml-2">{transactionFeePercent.toFixed(1)}%</span>
+                </div>
+              )}
+              {gmv !== undefined && gmv > 0 && (
+                <div>
+                  <span className="text-gray-600">Current GMV:</span>
+                  <span className="font-medium ml-2">${gmv.toLocaleString()}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
         
         <div className="grid grid-cols-3 gap-4 mt-4">
           <div className="text-center p-3 bg-gray-50 rounded">
