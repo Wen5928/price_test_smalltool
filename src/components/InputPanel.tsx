@@ -7,21 +7,30 @@ interface InputPanelProps {
   setSigma: (value: number) => void;
   cost: number;
   setCost: (value: number) => void;
+  cogs: number;
+  setCogs: (value: number) => void;
   traffic: number;
   setTraffic: (value: number) => void;
   minPrice: number;
   setMinPrice: (value: number) => void;
   maxPrice: number;
   setMaxPrice: (value: number) => void;
+  shippingFee: number;
+  setShippingFee: (value: number) => void;
+  transactionFeePercent: number;
+  setTransactionFeePercent: (value: number) => void;
 }
 
 export default function InputPanel({
   mu, setMu,
   sigma, setSigma,
   cost, setCost,
+  cogs, setCogs,
   traffic, setTraffic,
   minPrice, setMinPrice,
-  maxPrice, setMaxPrice
+  maxPrice, setMaxPrice,
+  shippingFee, setShippingFee,
+  transactionFeePercent, setTransactionFeePercent
 }: InputPanelProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -34,8 +43,8 @@ export default function InputPanel({
         <input type="number" value={sigma} onChange={e => setSigma(e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)} className="w-full border px-3 py-1 rounded" />
       </label>
       <label>
-        Unit Cost (C):
-        <input type="number" value={cost} onChange={e => setCost(e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)} className="w-full border px-3 py-1 rounded" />
+        COGS (Cost of Goods Sold):
+        <input type="number" value={cogs} onChange={e => setCogs(e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)} className="w-full border px-3 py-1 rounded" />
       </label>
       <label>
         Traffic (N):
@@ -48,6 +57,14 @@ export default function InputPanel({
       <label>
         Max Price:
         <input type="number" value={maxPrice} onChange={e => setMaxPrice(e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)} className="w-full border px-3 py-1 rounded" />
+      </label>
+      <label>
+        Shipping Fee:
+        <input type="number" value={shippingFee} onChange={e => setShippingFee(e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)} className="w-full border px-3 py-1 rounded" />
+      </label>
+      <label>
+        Transaction Fee (%):
+        <input type="number" value={transactionFeePercent} onChange={e => setTransactionFeePercent(e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)} className="w-full border px-3 py-1 rounded" />
       </label>
       
     </div>

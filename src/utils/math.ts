@@ -37,7 +37,10 @@ export function generateChartData(
   cost: number,
   traffic: number,
   minPrice: number,
-  maxPrice: number
+  maxPrice: number,
+  cogs: number = 0,
+  shippingFee: number = 0,
+  transactionFeePercent: number = 0
 ): ChartPoint[] {
   const result: ChartPoint[] = [];
 
@@ -50,7 +53,9 @@ export function generateChartData(
   for (let price = safeMinPrice; price <= safeMaxPrice; price++) {
     const convRate = normCDF(mu - price, 0, safeSigma);
     const revenue = price * safeTraffic * convRate;
-    const profit = (price - cost) * safeTraffic * convRate;
+    const transactionFee = price * (transactionFeePercent / 100);
+    const totalCost = (cogs || cost) + shippingFee + transactionFee;
+    const profit = (price - totalCost) * safeTraffic * convRate;
 
     result.push({
       price,
@@ -99,16 +104,21 @@ export function generateEnhancedChartData(
   traffic: number,
   minPrice: number,
   maxPrice: number,
-  oec: OECType
+  oec: OECType,
+  cogs: number = 0,
+  shippingFee: number = 0,
+  transactionFeePercent: number = 0
 ): EnhancedChartData {
-  const chartData = generateChartData(mu, sigma, cost, traffic, minPrice, maxPrice);
+  const chartData = generateChartData(mu, sigma, cost, traffic, minPrice, maxPrice, cogs, shippingFee, transactionFeePercent);
   
   // Handle empty chartData case
   if (chartData.length === 0) {
     const fallbackPrice = Math.max(minPrice, 1);
     const fallbackConvRate = normCDF(mu - fallbackPrice, 0, sigma);
     const fallbackRevenue = fallbackPrice * traffic * fallbackConvRate;
-    const fallbackProfit = (fallbackPrice - cost) * traffic * fallbackConvRate;
+    const transactionFee = fallbackPrice * (transactionFeePercent / 100);
+    const totalCost = (cogs || cost) + shippingFee + transactionFee;
+    const fallbackProfit = (fallbackPrice - totalCost) * traffic * fallbackConvRate;
     
     return {
       chartData: [],
@@ -172,17 +182,22 @@ export function generateComparisonData(
   minPrice: number,
   maxPrice: number,
   priceA: number,
-  priceB: number
+  priceB: number,
+  cogs: number = 0,
+  shippingFee: number = 0,
+  transactionFeePercent: number = 0
 ): ComparisonData {
-  const chartData = generateChartData(mu, sigma, cost, traffic, minPrice, maxPrice);
+  const chartData = generateChartData(mu, sigma, cost, traffic, minPrice, maxPrice, cogs, shippingFee, transactionFeePercent);
   
   const calculatePoint = (price: number): ComparisonPoint => {
     const convRate = normCDF(mu - price, 0, sigma);
+    const transactionFee = price * (transactionFeePercent / 100);
+    const totalCost = (cogs || cost) + shippingFee + transactionFee;
     return {
       price,
       conversionRate: convRate * 100,
       revenue: price * traffic * convRate,
-      profit: (price - cost) * traffic * convRate,
+      profit: (price - totalCost) * traffic * convRate,
     };
   };
 

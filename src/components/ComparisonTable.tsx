@@ -14,14 +14,14 @@ interface ComparisonTableProps {
 
 export default function ComparisonTable({ priceA, priceB }: ComparisonTableProps) {
   return (
-    <div className="overflow-x-auto">
-      <h3 className="text-lg font-semibold mb-4 text-center">📊 Price A vs Price B Comparison</h3>
+    <div className="h-full flex flex-col overflow-x-auto">
+      <h3 className="text-lg font-semibold mb-4 text-center">📊 Original Price vs Price B Comparison</h3>
       <table className="w-full bg-white rounded-lg shadow-sm border border-gray-200">
         <thead className="bg-gray-50">
           <tr>
             <th className="px-4 py-3 text-left font-semibold text-gray-700 border-b">Metric</th>
             <th className="px-4 py-3 text-center font-semibold text-blue-700 border-b bg-blue-50">
-              Price A (${priceA.price})
+              Original Price (${priceA.price})
             </th>
             <th className="px-4 py-3 text-center font-semibold text-green-700 border-b bg-green-50">
               Price B (${priceB.price})
@@ -43,7 +43,7 @@ export default function ComparisonTable({ priceA, priceB }: ComparisonTableProps
                 priceA.conversionRate > priceB.conversionRate ? 'text-blue-600' : 'text-green-600'
               }`}>
                 {Math.abs(priceA.conversionRate - priceB.conversionRate).toFixed(2)}% 
-                {priceA.conversionRate > priceB.conversionRate ? ' (A higher)' : ' (B higher)'}
+                {priceA.conversionRate > priceB.conversionRate ? ' (Original higher)' : ' (B higher)'}
               </span>
             </td>
           </tr>
@@ -60,7 +60,7 @@ export default function ComparisonTable({ priceA, priceB }: ComparisonTableProps
                 priceA.revenue > priceB.revenue ? 'text-blue-600' : 'text-green-600'
               }`}>
                 ${Math.abs(priceA.revenue - priceB.revenue).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} 
-                {priceA.revenue > priceB.revenue ? ' (A higher)' : ' (B higher)'}
+                {priceA.revenue > priceB.revenue ? ' (Original higher)' : ' (B higher)'}
               </span>
             </td>
           </tr>
@@ -77,7 +77,7 @@ export default function ComparisonTable({ priceA, priceB }: ComparisonTableProps
                 priceA.profit > priceB.profit ? 'text-blue-600' : 'text-green-600'
               }`}>
                 ${Math.abs(priceA.profit - priceB.profit).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} 
-                {priceA.profit > priceB.profit ? ' (A higher)' : ' (B higher)'}
+                {priceA.profit > priceB.profit ? ' (Original higher)' : ' (B higher)'}
               </span>
             </td>
           </tr>

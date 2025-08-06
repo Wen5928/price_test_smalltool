@@ -31,6 +31,7 @@ interface ResultChartProps {
   setPriceB: (value: number) => void;
   minPrice: number;
   maxPrice: number;
+  optimalPrice?: OptimalPrice;
 }
 
 export default function ResultChart({ 
@@ -40,7 +41,8 @@ export default function ResultChart({
   setPriceA, 
   setPriceB, 
   minPrice, 
-  maxPrice
+  maxPrice,
+  optimalPrice
 }: ResultChartProps) {
   const priceRange = { min: Math.min(priceA, priceB), max: Math.max(priceA, priceB) };
 
@@ -64,36 +66,38 @@ export default function ResultChart({
           🎚️ Interactive Price Adjustment
         </h4>
         
-        <div className="relative mb-6 px-3">
+        <div className="relative mb-6 ">
           {/* Price range bar background */}
-          <div className="w-full h-2 bg-gray-200 rounded-full relative overflow-hidden">
-            {/* Range between A and B */}
-            <div 
-              className="absolute top-0 h-full bg-gradient-to-r from-blue-300 to-green-300 opacity-50"
-              style={{
-                left: `${Math.min(priceAPercent, priceBPercent)}%`,
-                width: `${Math.abs(priceBPercent - priceAPercent)}%`
-              }}
-            />
+          <div className="mx-3">
+            <div className="w-full h-2 bg-gray-200 rounded-full relative overflow-hidden">
+              {/* Range between A and B */}
+              <div 
+                className="absolute top-0 h-full bg-gradient-to-r from-blue-300 to-green-300 opacity-50"
+                style={{
+                  left: `${Math.min(priceAPercent, priceBPercent)}%`,
+                  width: `${Math.abs(priceBPercent - priceAPercent)}%`
+                }}
+              />
+            </div>
           </div>
 
           {/* Price markers */}
-          <div className="relative mt-3 h-12">
-            {/* Price A marker */}
+          <div className="relative mt-3 h-10 mx-3">
+            {/* Price A marker - aligned to left boundary of colored bar */}
             <div 
               className="absolute transform -translate-x-1/2"
-              style={{ left: `${priceAPercent}%` }}
+              style={{ left: `${Math.min(priceAPercent, priceBPercent)}%` }}
             >
               <div className="w-3 h-3 bg-blue-500 rounded-full border-2 border-white shadow-lg"></div>
               <div className="text-xs font-semibold text-blue-600 mt-1 text-center whitespace-nowrap">
-                A: ${priceA}
+                Original: ${priceA}
               </div>
             </div>
 
-            {/* Price B marker - ensure it's green */}
+            {/* Price B marker - aligned to right boundary of colored bar */}
             <div 
               className="absolute transform -translate-x-1/2"
-              style={{ left: `${priceBPercent}%` }}
+              style={{ left: `${Math.max(priceAPercent, priceBPercent)}%` }}
             >
               <div className="w-3 h-3 bg-green-500 rounded-full border-2 border-white shadow-lg"></div>
               <div className="text-xs font-semibold text-green-600 mt-1 text-center whitespace-nowrap">
@@ -106,9 +110,9 @@ export default function ResultChart({
 
         {/* Dual sliders with consistent boundaries */}
         <div className="space-y-5 px-3">
-          {/* Price A slider */}
+          {/* Original Price slider */}
           <div className="flex items-center space-x-3">
-            <label className="w-16 text-sm font-medium text-blue-700">Price A:</label>
+            <label className="w-24 text-sm font-medium text-blue-700">Original Price:</label>
             <div className="flex-1 relative px-0">
               <input
                 type="range"
@@ -130,7 +134,7 @@ export default function ResultChart({
 
           {/* Price B slider */}
           <div className="flex items-center space-x-3">
-            <label className="w-16 text-sm font-medium text-green-700">Price B:</label>
+            <label className="w-24 text-sm font-medium text-green-700">Price B:</label>
             <div className="flex-1 relative px-0">
               <input
                 type="range"
@@ -203,6 +207,22 @@ export default function ResultChart({
             strokeWidth={3} 
             strokeDasharray="5 5" 
           />
+          
+          {/* Optimal price marker */}
+          {optimalPrice && (
+            <ReferenceLine 
+              x={optimalPrice.price} 
+              stroke="#dc2626" 
+              strokeWidth={3}
+              label={{
+                value: `Optimal: $${optimalPrice.price}`,
+                position: 'top',
+                fill: '#dc2626',
+                fontSize: 12,
+                fontWeight: 'bold'
+              }}
+            />
+          )}
           
           {/* Gradient definition */}
           <defs>
