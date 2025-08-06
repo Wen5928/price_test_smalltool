@@ -20,7 +20,7 @@ export default function ExplanationText({ comparisonData }: ExplanationTextProps
 
   return (
     <div className="bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg">
-      <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
+      <h2 className="text-4xl font-bold mb-6 text-center text-gray-800">
         So, Why We Need A/B Testing?
       </h2>
       

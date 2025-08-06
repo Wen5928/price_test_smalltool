@@ -66,7 +66,7 @@ export default function ResultChart({
           🎚️ Interactive Price Adjustment
         </h4>
         
-        <div className="relative mb-6 ">
+        <div className="relative mb-10">
           {/* Price range bar background */}
           <div className="mx-3">
             <div className="w-full h-2 bg-gray-200 rounded-full relative overflow-hidden">
@@ -81,39 +81,36 @@ export default function ResultChart({
             </div>
           </div>
 
-          {/* Price markers */}
-          <div className="relative mt-3 h-10 mx-3">
-            {/* Price A marker - aligned to left boundary of colored bar */}
+          {/* Price labels directly below color bar boundaries */}
+          <div className="relative mt-2 mx-3">
+            {/* Original Price label */}
             <div 
               className="absolute transform -translate-x-1/2"
-              style={{ left: `${Math.min(priceAPercent, priceBPercent)}%` }}
+              style={{ left: `${priceAPercent}%` }}
             >
-              <div className="w-3 h-3 bg-blue-500 rounded-full border-2 border-white shadow-lg"></div>
-              <div className="text-xs font-semibold text-blue-600 mt-1 text-center whitespace-nowrap">
+              <div className="text-xs font-semibold text-blue-600 text-center whitespace-nowrap">
                 Original: ${priceA}
               </div>
             </div>
 
-            {/* Price B marker - aligned to right boundary of colored bar */}
+            {/* Price B label */}
             <div 
               className="absolute transform -translate-x-1/2"
-              style={{ left: `${Math.max(priceAPercent, priceBPercent)}%` }}
+              style={{ left: `${priceBPercent}%` }}
             >
-              <div className="w-3 h-3 bg-green-500 rounded-full border-2 border-white shadow-lg"></div>
-              <div className="text-xs font-semibold text-green-600 mt-1 text-center whitespace-nowrap">
+              <div className="text-xs font-semibold text-green-600 text-center whitespace-nowrap">
                 B: ${priceB}
               </div>
             </div>
-
           </div>
         </div>
 
         {/* Dual sliders with consistent boundaries */}
-        <div className="space-y-5 px-3">
+        <div className="space-y-5">
           {/* Original Price slider */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 mx-3">
             <label className="w-24 text-sm font-medium text-blue-700">Original Price:</label>
-            <div className="flex-1 relative px-0">
+            <div className="flex-1 relative">
               <input
                 type="range"
                 min={minPrice}
@@ -133,9 +130,9 @@ export default function ResultChart({
           </div>
 
           {/* Price B slider */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 mx-3">
             <label className="w-24 text-sm font-medium text-green-700">Price B:</label>
-            <div className="flex-1 relative px-0">
+            <div className="flex-1 relative">
               <input
                 type="range"
                 min={minPrice}
@@ -156,7 +153,7 @@ export default function ResultChart({
         </div>
 
         {/* Range indicators */}
-        <div className="flex justify-between mt-3 px-3 text-xs text-gray-500">
+        <div className="flex justify-between mt-3 mx-3 text-xs text-gray-500">
           <span>Min: ${minPrice}</span>
           <span>Max: ${maxPrice}</span>
         </div>
