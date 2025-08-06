@@ -15,13 +15,33 @@ interface CsvUploaderProps {
   setShippingFee: (value: number) => void;
   transactionFeePercent: number;
   setTransactionFeePercent: (value: number) => void;
+  gmv: number;
+  setGmv: (value: number) => void;
+  sellingTraffic: number;
+  setSellingTraffic: (value: number) => void;
+  conversionRate: number;
+  setConversionRate: (value: number) => void;
 }
 
-export default function CsvUploader({ onProductSelect, shippingFee, setShippingFee, transactionFeePercent, setTransactionFeePercent }: CsvUploaderProps) {
+export default function CsvUploader({ 
+  onProductSelect, 
+  shippingFee, 
+  setShippingFee, 
+  transactionFeePercent, 
+  setTransactionFeePercent, 
+  gmv, 
+  setGmv, 
+  sellingTraffic, 
+  setSellingTraffic, 
+  conversionRate, 
+  setConversionRate 
+}: CsvUploaderProps) {
   const [products, setProducts] = useState<ProductData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(0);
+  const productsPerPage = 5;
 
   const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -129,9 +149,9 @@ export default function CsvUploader({ onProductSelect, shippingFee, setShippingF
       {products.length > 0 && (
         <div className="space-y-2">
           <h3 className="font-semibold">Select a product to analyze:</h3>
-          <div className="max-h-96 overflow-y-auto border rounded-lg">
+          <div className="border rounded-lg">
             <table className="w-full">
-              <thead className="bg-gray-50 sticky top-0">
+              <thead className="bg-gray-50">
                 <tr>
                   <th className="text-left px-3 py-2 text-sm font-semibold text-gray-700 border-b">Product</th>
                   <th className="text-right px-3 py-2 text-sm font-semibold text-gray-700 border-b">Price</th>
@@ -143,7 +163,7 @@ export default function CsvUploader({ onProductSelect, shippingFee, setShippingF
                 </tr>
               </thead>
               <tbody>
-                {products.map((product) => {
+                {products.slice(currentPage * productsPerPage, (currentPage + 1) * productsPerPage).map((product) => {
                   const transactionFee = product.price * (transactionFeePercent / 100);
                   const totalCost = product.costPerItem + shippingFee + transactionFee;
                   const margin = ((product.price - totalCost) / product.price * 100);
@@ -153,7 +173,7 @@ export default function CsvUploader({ onProductSelect, shippingFee, setShippingF
                       key={product.handle}
                       onClick={() => handleProductSelect(product)}
                       className={`border-b cursor-pointer hover:bg-gray-50 transition-colors ${
-                        selectedProduct === product.handle ? 'bg-blue-100 hover:bg-blue-100' : ''
+                        selectedProduct === product.handle ? 'bg-blue-200 hover:bg-blue-200' : ''
                       }`}
                     >
                       <td className="px-3 py-2">
@@ -174,16 +194,44 @@ export default function CsvUploader({ onProductSelect, shippingFee, setShippingF
                 })}
               </tbody>
             </table>
+            
+            {/* Pagination Controls */}
+            {products.length > productsPerPage && (
+              <div className="flex justify-between items-center px-4 py-3 bg-gray-50 border-t">
+                <div className="text-sm text-gray-700">
+                  Showing {currentPage * productsPerPage + 1} to {Math.min((currentPage + 1) * productsPerPage, products.length)} of {products.length} products
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
+                    disabled={currentPage === 0}
+                    className="px-3 py-1 text-sm border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage(Math.min(Math.ceil(products.length / productsPerPage) - 1, currentPage + 1))}
+                    disabled={currentPage >= Math.ceil(products.length / productsPerPage) - 1}
+                    className="px-3 py-1 text-sm border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
-          <div className="mt-3 pt-2 border-t border-gray-200">
-            <div className="grid grid-cols-2 gap-3">
+          
+          {/* Manual Input Parameters Section */}
+          <div className="mt-4 p-4 bg-gray-50 rounded-lg border">
+            <h4 className="text-sm font-semibold text-gray-700 mb-3">Configuration Settings</h4>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <label className="block">
-                <span className="text-xs font-medium text-gray-600">Shipping Fee:</span>
+                <span className="text-xs font-medium text-gray-600">Shipping Cost ($):</span>
                 <input 
                   type="number" 
                   value={shippingFee} 
                   onChange={(e) => setShippingFee(parseFloat(e.target.value) || 0)}
-                  className="w-full mt-1 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full mt-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                   step="0.01"
                   min="0"
                 />
@@ -194,8 +242,42 @@ export default function CsvUploader({ onProductSelect, shippingFee, setShippingF
                   type="number" 
                   value={transactionFeePercent} 
                   onChange={(e) => setTransactionFeePercent(parseFloat(e.target.value) || 0)}
-                  className="w-full mt-1 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full mt-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                   step="0.1"
+                  min="0"
+                  max="100"
+                />
+              </label>
+              <label className="block">
+                <span className="text-xs font-medium text-gray-600">Gross Merchandise Value ($):</span>
+                <input 
+                  type="number" 
+                  value={gmv} 
+                  onChange={(e) => setGmv(parseFloat(e.target.value) || 0)}
+                  className="w-full mt-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                  step="0.01"
+                  min="0"
+                />
+              </label>
+              <label className="block">
+                <span className="text-xs font-medium text-gray-600">Selling Traffic:</span>
+                <input 
+                  type="number" 
+                  value={sellingTraffic} 
+                  onChange={(e) => setSellingTraffic(parseFloat(e.target.value) || 0)}
+                  className="w-full mt-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                  step="1"
+                  min="1"
+                />
+              </label>
+              <label className="block">
+                <span className="text-xs font-medium text-gray-600">Conversion Rate (%):</span>
+                <input 
+                  type="number" 
+                  value={conversionRate} 
+                  onChange={(e) => setConversionRate(parseFloat(e.target.value) || 0)}
+                  className="w-full mt-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                  step="0.01"
                   min="0"
                   max="100"
                 />

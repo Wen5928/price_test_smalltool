@@ -26,6 +26,9 @@ export default function Home() {
   const [inputMode, setInputMode] = useState<'manual' | 'csv'>('csv');
   const [oec, setOec] = useState<OECType>('profit');
   const [isProductSelected, setIsProductSelected] = useState(false);
+  const [gmv, setGmv] = useState(0);
+  const [sellingTraffic, setSellingTraffic] = useState(1000);
+  const [conversionRate, setConversionRate] = useState(2.5);
 
   const chartData = generateChartData(mu, sigma, cost, traffic, minPrice, maxPrice, cogs, shippingFee, transactionFeePercent);
   const comparisonData = generateComparisonData(mu, sigma, cost, traffic, minPrice, maxPrice, priceA, priceB, cogs, shippingFee, transactionFeePercent);
@@ -112,6 +115,12 @@ export default function Home() {
                       setShippingFee={setShippingFee}
                       transactionFeePercent={transactionFeePercent}
                       setTransactionFeePercent={setTransactionFeePercent}
+                      gmv={gmv}
+                      setGmv={setGmv}
+                      sellingTraffic={sellingTraffic}
+                      setSellingTraffic={setSellingTraffic}
+                      conversionRate={conversionRate}
+                      setConversionRate={setConversionRate}
                     />
                   ) : (
                     <InputPanel
@@ -137,10 +146,6 @@ export default function Home() {
                   )}
                 </div>
 
-                {/* OEC Selector */}
-                <div className="border-t pt-4">
-                  <OecSelector oec={oec} setOec={setOec} />
-                </div>
               </div>
             </section>
           </div>
@@ -150,6 +155,11 @@ export default function Home() {
             <section>
               <h2 className="text-2xl font-semibold mb-4">Result Chart</h2>
               <div className="border border-gray-200 rounded p-4 bg-gray-50">
+                {/* Evaluation Focus Selector at top of chart section */}
+                <div className="mb-4 pb-4 border-b border-gray-300">
+                  <OecSelector oec={oec} setOec={setOec} />
+                </div>
+                
                 {(inputMode === 'manual' || isProductSelected) ? (
                   <ResultChart 
                     data={chartData} 
