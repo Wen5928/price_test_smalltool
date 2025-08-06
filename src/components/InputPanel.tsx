@@ -26,11 +26,11 @@ export default function InputPanel({
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <label>
-        Average WTP (μ):
+        Average Willingness to Pay (μ):
         <input type="number" value={mu} onChange={e => setMu(e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)} className="w-full border px-3 py-1 rounded" />
       </label>
       <label>
-        Std. Deviation (σ):
+        Standard Deviation (σ):
         <input type="number" value={sigma} onChange={e => setSigma(e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)} className="w-full border px-3 py-1 rounded" />
       </label>
       <label>
