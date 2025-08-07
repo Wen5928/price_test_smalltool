@@ -58,6 +58,48 @@ export default function Home() {
       setMu(product.price);
       // cost 在 CSV 模式下設為 0，因為實際成本已經在 cogs 中
       setCost(0);
+      
+      // 只有在商品有運送需求時才調整運費，否則保持預設
+      if (variant.requiresShipping !== undefined) {
+        if (!variant.requiresShipping) {
+          setShippingFee(0); // 數位商品或不需運送的商品
+        }
+        // 如果需要運送但沒有更多信息，保持原本的設定
+      }
+      
+      // 如果商品有重量信息，可以根據重量調整運費
+      if (variant.weight !== undefined && variant.weight > 0 && variant.requiresShipping) {
+        if (variant.weight > 1000) { // 超過 1kg
+          setShippingFee(Math.max(shippingFee, 9.99)); // 重物件較高運費
+        }
+      }
+      
+      // 如果有商品類型信息，可以用來判斷是否為數位商品
+      if (variant.type && variant.type.toLowerCase().includes('digital')) {
+        setShippingFee(0);
+      }
+      
+      // 根據 tariff 資訊調整 transaction fee (%)
+      if (variant.tariff !== undefined) {
+        if (variant.tariff) {
+          // 如果有關稅，增加 transaction fee 百分比
+          setTransactionFeePercent(3.9); // 包含關稅的較高手續費率
+        } else {
+          // 沒有關稅，使用標準 transaction fee
+          setTransactionFeePercent(2.9); // 標準支付處理費用百分比
+        }
+      }
+      
+      // 根據 tags 調整一些設定（如果有的話）
+      if (variant.tags) {
+        const tags = variant.tags.toLowerCase();
+        if (tags.includes('free-shipping') || tags.includes('free_shipping')) {
+          setShippingFee(0);
+        }
+        if (tags.includes('high-conversion') && !conversionRate) {
+          setConversionRate(5.0);
+        }
+      }
     }
     
     setMinPrice(1);
@@ -175,7 +217,7 @@ export default function Home() {
                 <div className="border border-gray-200 rounded p-4 bg-gray-50">
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     <label className="block">
-                      <span className="text-xs font-medium text-gray-600">運費成本 ($):</span>
+                      <span className="text-xs font-medium text-gray-600">Shipping Fee ($):</span>
                       <input 
                         type="number" 
                         value={shippingFee} 
@@ -186,7 +228,7 @@ export default function Home() {
                       />
                     </label>
                     <label className="block">
-                      <span className="text-xs font-medium text-gray-600">交易手續費 (%):</span>
+                      <span className="text-xs font-medium text-gray-600">Transaction Fee (%):</span>
                       <input 
                         type="number" 
                         value={transactionFeePercent} 
@@ -209,7 +251,7 @@ export default function Home() {
                       />
                     </label>
                     <label className="block">
-                      <span className="text-xs font-medium text-gray-600">流量:</span>
+                      <span className="text-xs font-medium text-gray-600">Traffic:</span>
                       <input 
                         type="number" 
                         value={sellingTraffic} 
@@ -220,7 +262,7 @@ export default function Home() {
                       />
                     </label>
                     <label className="block">
-                      <span className="text-xs font-medium text-gray-600">轉換率 (%):</span>
+                      <span className="text-xs font-medium text-gray-600">Conversion Rate (%):</span>
                       <input 
                         type="number" 
                         value={conversionRate} 

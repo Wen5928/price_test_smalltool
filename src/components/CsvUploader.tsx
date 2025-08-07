@@ -14,6 +14,13 @@ export interface ProductVariant {
   sku?: string;
   status: string;
   uniqueId?: string; // 添加唯一ID
+  // 新增可能的 CSV 欄位
+  weight?: number; // Variant Grams
+  tags?: string; // Tags
+  type?: string; // Type
+  grams?: number; // Variant Grams
+  taxable?: boolean; // Variant Taxable
+  tariff?: boolean; // tariff (product.metafields.custom.tariff)
 }
 
 // 保持向後相容的介面
@@ -42,7 +49,7 @@ export default function CsvUploader({
   const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [displayLimit, setDisplayLimit] = useState(40); // 預設顯示40個商品
+  const [displayLimit, setDisplayLimit] = useState(39); // 預設顯示39個商品（13排×3個）
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [filterVendor, setFilterVendor] = useState<string>('all');
 
@@ -74,7 +81,14 @@ export default function CsvUploader({
                 category: row['Product Category'] || 'Uncategorized',
                 sku: row['Variant SKU'] || undefined,
                 status: row['Status'] || 'unknown',
-                uniqueId: `${row['Handle']}-${row['Option1 Value'] || 'default'}-${rowIndex}` // 添加行索引確保唯一性
+                uniqueId: `${row['Handle']}-${row['Option1 Value'] || 'default'}-${rowIndex}`, // 添加行索引確保唯一性
+                // 新增欄位解析
+                weight: row['Variant Grams'] ? parseFloat(row['Variant Grams']) : undefined,
+                tags: row['Tags'] || undefined,
+                type: row['Type'] || undefined,
+                grams: row['Variant Grams'] ? parseFloat(row['Variant Grams']) : undefined,
+                taxable: row['Variant Taxable'] === 'true',
+                tariff: row['tariff (product.metafields.custom.tariff)'] === 'TRUE'
               };
               
               // 過濾掉價格為 0 或負數的商品
@@ -230,7 +244,7 @@ export default function CsvUploader({
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
-                  setDisplayLimit(40); // 重置顯示限制
+                  setDisplayLimit(39); // 重置顯示限制
                 }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
               />
@@ -245,7 +259,7 @@ export default function CsvUploader({
                   value={filterStatus}
                   onChange={(e) => {
                     setFilterStatus(e.target.value);
-                    setDisplayLimit(40); // 重置顯示限制
+                    setDisplayLimit(39); // 重置顯示限制
                   }}
                   className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                 >
@@ -265,7 +279,7 @@ export default function CsvUploader({
                   value={filterCategory}
                   onChange={(e) => {
                     setFilterCategory(e.target.value);
-                    setDisplayLimit(40); // 重置顯示限制
+                    setDisplayLimit(39); // 重置顯示限制
                   }}
                   className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                 >
@@ -285,7 +299,7 @@ export default function CsvUploader({
                   value={filterVendor}
                   onChange={(e) => {
                     setFilterVendor(e.target.value);
-                    setDisplayLimit(40); // 重置顯示限制
+                    setDisplayLimit(39); // 重置顯示限制
                   }}
                   className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                 >
@@ -414,7 +428,7 @@ export default function CsvUploader({
               {filteredVariants.length > displayLimit && (
                 <div className="text-center mt-4">
                   <button
-                    onClick={() => setDisplayLimit(prev => prev + 40)}
+                    onClick={() => setDisplayLimit(prev => prev + 39)}
                     className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
                   >
                     載入更多商品 ({filteredVariants.length - displayLimit} 個剩餘)

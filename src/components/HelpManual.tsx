@@ -43,9 +43,10 @@ export default function HelpManual() {
                 </h4>
                 <ul className="space-y-1 pl-4">
                   <li>• 選擇「上傳 CSV」或「手動輸入」模式</li>
-                  <li>• CSV 模式：上傳 Shopify 產品檔案並選擇產品</li>
+                  <li>• CSV 模式：上傳 Shopify 檔案 → 篩選商品 → 點擊選擇</li>
                   <li>• 手動模式：直接輸入產品參數</li>
-                  <li>• 查看右側圖表進行價格分析</li>
+                  <li>• 調整配置設定（運費、手續費等）</li>
+                  <li>• 查看圖表和選中商品卡片進行分析</li>
                 </ul>
               </section>
 
@@ -55,10 +56,27 @@ export default function HelpManual() {
                   📁 CSV 上傳
                 </h4>
                 <ul className="space-y-1 pl-4">
-                  <li>• 支援 Shopify 產品 CSV 格式</li>
+                  <li>• 支援 Shopify 產品 CSV 格式（含變體）</li>
                   <li>• 必要欄位：Handle, Title, Variant Price, Cost per item</li>
                   <li>• 拖拽檔案或點擊上傳</li>
-                  <li>• 產品列表顯示關鍵成本資訊</li>
+                  <li>• 一排顯示 3 個商品，預設載入 40 個</li>
+                  <li>• 支援搜尋商品名稱、供應商、變體</li>
+                  <li>• 可按狀態、分類、供應商篩選</li>
+                  <li>• 產品卡片顯示價格、成本、利潤率</li>
+                </ul>
+              </section>
+
+              {/* Product Filtering */}
+              <section>
+                <h4 className="font-semibold text-teal-600 mb-2 flex items-center gap-1">
+                  🔍 商品篩選
+                </h4>
+                <ul className="space-y-1 pl-4">
+                  <li>• <strong>搜尋欄:</strong> 輸入商品名、供應商、變體名稱</li>
+                  <li>• <strong>狀態篩選:</strong> 上架中、草稿等狀態</li>
+                  <li>• <strong>分類篩選:</strong> 按產品分類快速定位</li>
+                  <li>• <strong>供應商篩選:</strong> 按供應商品牌篩選</li>
+                  <li>• 篩選會自動重置載入數量至 40 個</li>
                 </ul>
               </section>
 
@@ -82,11 +100,12 @@ export default function HelpManual() {
                   📈 圖表功能
                 </h4>
                 <ul className="space-y-1 pl-4">
-                  <li>• <strong>藍線:</strong> 轉換率曲線</li>
-                  <li>• <strong>綠線:</strong> 營收曲線</li>
-                  <li>• <strong>紫線:</strong> 利潤曲線</li>
-                  <li>• <strong>紅點:</strong> 最佳價格點</li>
-                  <li>• 拖拉滑桿調整價格範圍</li>
+                  <li>• <strong>藍色實線:</strong> 轉換率曲線（主要分析線）</li>
+                  <li>• <strong>藍色虛線:</strong> Original Price 參考線</li>
+                  <li>• <strong>綠色虛線:</strong> New Price 參考線</li>
+                  <li>• <strong>紅色實線:</strong> 最佳價格標記</li>
+                  <li>• <strong>已選商品卡片:</strong> 顯示當前分析的商品信息</li>
+                  <li>• CSV 模式：Original Price 固定，只調整 New Price</li>
                 </ul>
               </section>
 
@@ -123,9 +142,11 @@ export default function HelpManual() {
                 </h4>
                 <ul className="space-y-1 pl-4 text-yellow-800">
                   <li>• 利潤率建議保持在 20% 以上</li>
-                  <li>• 定期調整參數以反映市場變化</li>
-                  <li>• 比較不同產品的表現找出最佳組合</li>
-                  <li>• 使用 A/B 測試驗證分析結果</li>
+                  <li>• 使用搜尋功能快速找到特定商品</li>
+                  <li>• 善用分類和供應商篩選器縮小範圍</li>
+                  <li>• 載入更多商品按鈕一次顯示 40 個</li>
+                  <li>• CSV 模式下原價固定，專注調整新價格</li>
+                  <li>• 比較不同商品找出最佳價格策略</li>
                 </ul>
               </section>
             </div>
