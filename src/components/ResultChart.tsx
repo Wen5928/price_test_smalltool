@@ -36,6 +36,8 @@ interface ResultChartProps {
   optimalPrice?: OptimalPrice;
   oec: OECType;
   setOec: (value: OECType) => void;
+  isCSVMode?: boolean;
+  selectedProduct?: any;
 }
 
 export default function ResultChart({ 
@@ -48,7 +50,9 @@ export default function ResultChart({
   maxPrice,
   optimalPrice,
   oec,
-  setOec
+  setOec,
+  isCSVMode,
+  selectedProduct
 }: ResultChartProps) {
   const priceRange = { min: Math.min(priceA, priceB), max: Math.max(priceA, priceB) };
 
@@ -72,7 +76,7 @@ export default function ResultChart({
           🎚️ Interactive Price Adjustment
         </h4>
         
-        <div className="relative mb-10">
+        <div className="relative mb-5">
           {/* Price range bar background */}
           <div className="mx-3">
             <div className="w-full h-2 bg-gray-200 rounded-full relative overflow-hidden">
@@ -94,9 +98,7 @@ export default function ResultChart({
               className="absolute transform -translate-x-1/2"
               style={{ left: `${priceAPercent}%` }}
             >
-              <div className="text-xs font-semibold text-blue-600 text-center whitespace-nowrap">
-                Original: ${priceA}
-              </div>
+              
             </div>
 
             {/* New Price label */}
@@ -104,9 +106,7 @@ export default function ResultChart({
               className="absolute transform -translate-x-1/2"
               style={{ left: `${priceBPercent}%` }}
             >
-              <div className="text-xs font-semibold text-green-600 text-center whitespace-nowrap">
-                New: ${priceB}
-              </div>
+              
             </div>
           </div>
         </div>
@@ -114,7 +114,7 @@ export default function ResultChart({
         {/* Dual sliders with consistent boundaries */}
         <div className="space-y-5">
           {/* Original Price slider */}
-          <div className="flex items-center space-x-3 mx-3">
+          <div className={`flex items-center space-x-3 mx-3 ${isCSVMode ? 'opacity-50' : ''}`}>
             <label className="w-24 text-sm font-medium text-blue-700">Original Price:</label>
             <div className="flex-1 relative">
               <input
@@ -124,6 +124,7 @@ export default function ResultChart({
                 step="1"
                 value={priceA}
                 onChange={handlePriceAChange}
+                disabled={isCSVMode}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer price-a-slider"
                 style={{
                   background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${priceAPercent}%, #e5e7eb ${priceAPercent}%, #e5e7eb 100%)`
@@ -133,6 +134,11 @@ export default function ResultChart({
             <div className="w-14 px-2 py-1 text-xs font-semibold text-blue-700 bg-blue-50 rounded border text-center">
               ${priceA}
             </div>
+            {isCSVMode && (
+              <div className="text-xs text-gray-500 ml-2">
+                (固定)
+              </div>
+            )}
           </div>
 
           {/* New Price slider */}
@@ -174,6 +180,34 @@ export default function ResultChart({
 
   return (
     <div className="w-full">
+      {/* Selected Product Info */}
+      {isCSVMode && selectedProduct && (
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-blue-800 text-sm">📦 已選商品</h3>
+              <p className="text-blue-700 text-sm mt-1">
+                {selectedProduct.title}
+                {selectedProduct.variantOption !== 'Default Title' && (
+                  <span className="ml-2 px-2 py-1 bg-blue-100 rounded text-xs">
+                    {selectedProduct.variantOption}
+                  </span>
+                )}
+              </p>
+            </div>
+            <div className="text-right">
+              <div className="text-lg font-bold text-blue-800">${selectedProduct.price}</div>
+              <div className="text-xs text-blue-600">當前價格</div>
+            </div>
+          </div>
+          {selectedProduct.vendor && (
+            <div className="mt-2 text-xs text-blue-600">
+              供應商: {selectedProduct.vendor} | 分類: {selectedProduct.category}
+            </div>
+          )}
+        </div>
+      )}
+      
       <div className="w-full h-[400px]">
         <ResponsiveContainer width="100%" height="100%">
         <LineChart 
