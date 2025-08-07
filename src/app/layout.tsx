@@ -53,11 +53,6 @@ export const metadata: Metadata = {
     description: "Professional A/B price testing calculator to compare conversion rates, revenue, and profit between different price points.",
     images: ["https://yourwebsite.com/twitter-image.png"],
   },
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-  },
   verification: {
     google: "your-google-verification-code",
     yandex: "your-yandex-verification-code",

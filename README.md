@@ -2,9 +2,7 @@
 
 > An interactive pricing simulation tool that helps e-commerce merchants understand the impact of price changes on conversion rates, revenue, and profit.
 
-[![Vercel Deploy](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=flat&logo=vercel)](https://price-test-smalltool.vercel.app/)
-[![Built with Next.js](https://img.shields.io/badge/Built%20with-Next.js%2015-black?style=flat&logo=next.js)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue?style=flat&logo=typescript)](https://www.typescriptlang.org/)
+
 
 ## 🎯 What is this?
 

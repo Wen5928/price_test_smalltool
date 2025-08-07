@@ -6,6 +6,8 @@ import React from 'react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine, ReferenceArea
 } from 'recharts';
+import OecSelector from './OecSelector';
+import { OECType } from '@/utils/math';
 
 interface DataPoint {
   price: number;
@@ -32,6 +34,8 @@ interface ResultChartProps {
   minPrice: number;
   maxPrice: number;
   optimalPrice?: OptimalPrice;
+  oec: OECType;
+  setOec: (value: OECType) => void;
 }
 
 export default function ResultChart({ 
@@ -42,7 +46,9 @@ export default function ResultChart({
   setPriceB, 
   minPrice, 
   maxPrice,
-  optimalPrice
+  optimalPrice,
+  oec,
+  setOec
 }: ResultChartProps) {
   const priceRange = { min: Math.min(priceA, priceB), max: Math.max(priceA, priceB) };
 
@@ -156,6 +162,11 @@ export default function ResultChart({
         <div className="flex justify-between mt-3 mx-3 text-xs text-gray-500">
           <span>Min: ${minPrice}</span>
           <span>Max: ${maxPrice}</span>
+        </div>
+
+        {/* Evaluation Focus Selector */}
+        <div className="mt-6 pt-4 border-t border-gray-300">
+          <OecSelector oec={oec} setOec={setOec} />
         </div>
       </div>
     );

@@ -1,12 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import InputPanel from '@/components/InputPanel';
 import ResultChart from '@/components/ResultChart';
 import ExplanationText from '@/components/ExplanationText';
 import ComparisonTable from '@/components/ComparisonTable';
 import CsvUploader, { ProductData } from '@/components/CsvUploader';
-import OecSelector from '@/components/OecSelector';
 import OptimalPriceConclusion from '@/components/OptimalPriceConclusion';
 // import ExportSummary from '@/components/ExportSummary';  // Currently not in use
 import { generateComparisonData, generateChartData, generateEnhancedChartData, OECType }  from '@/utils/math';
@@ -38,6 +37,13 @@ export default function Home() {
   const chartData = generateChartData(mu, sigma, cost, effectiveTraffic, minPrice, maxPrice, cogs, shippingFee, transactionFeePercent, effectiveConversionRate, effectiveGmv, priceA);
   const comparisonData = generateComparisonData(mu, sigma, cost, effectiveTraffic, minPrice, maxPrice, priceA, priceB, cogs, shippingFee, transactionFeePercent, effectiveConversionRate, effectiveGmv);
   const enhancedData = generateEnhancedChartData(mu, sigma, cost, effectiveTraffic, minPrice, maxPrice, oec, cogs, shippingFee, transactionFeePercent, effectiveConversionRate, effectiveGmv, priceA);
+
+  // Adjust maxPrice if it's less than or equal to optimal price
+  useEffect(() => {
+    if (enhancedData.optimalPrice && maxPrice <= enhancedData.optimalPrice.price) {
+      setMaxPrice(Math.round(enhancedData.optimalPrice.price) + 1);
+    }
+  }, [enhancedData.optimalPrice, maxPrice]);
 
   const handleProductSelect = (product: ProductData) => {
     setCogs(product.costPerItem);
@@ -160,11 +166,6 @@ export default function Home() {
             <section>
               <h2 className="text-2xl font-semibold mb-4">Result Chart</h2>
               <div className="border border-gray-200 rounded p-4 bg-gray-50">
-                {/* Evaluation Focus Selector at top of chart section */}
-                <div className="mb-4 pb-4 border-b border-gray-300">
-                  <OecSelector oec={oec} setOec={setOec} />
-                </div>
-                
                 {(inputMode === 'manual' || isProductSelected) ? (
                   <ResultChart 
                     data={chartData} 
@@ -175,6 +176,8 @@ export default function Home() {
                     minPrice={minPrice}
                     maxPrice={maxPrice}
                     optimalPrice={enhancedData.optimalPrice}
+                    oec={oec}
+                    setOec={setOec}
                   />
                 ) : (
                   <div className="h-[400px] flex items-center justify-center text-gray-500">
