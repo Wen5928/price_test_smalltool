@@ -16,7 +16,19 @@ export default function ExplanationText({ comparisonData }: ExplanationTextProps
   const betterData = betterPrice === 'Original' ? priceA : priceB;
   const worseData = betterPrice === 'Original' ? priceB : priceA;
   
-  const profitImprovement = ((betterData.profit - worseData.profit) / worseData.profit * 100);
+  // Calculate profit improvement with safety checks
+  let profitImprovement = 0;
+  if (worseData.profit > 0) {
+    profitImprovement = ((betterData.profit - worseData.profit) / worseData.profit) * 100;
+  } else if (worseData.profit <= 0 && betterData.profit > 0) {
+    // If worse scenario has no profit but better scenario does, it's a significant improvement
+    profitImprovement = betterData.profit > worseData.profit ? 200 : 0; // Cap at 200% for readability
+  } else {
+    profitImprovement = 0;
+  }
+  
+  // Cap the improvement percentage at reasonable limits
+  profitImprovement = Math.min(Math.max(profitImprovement, -100), 500);
 
   return (
     <div className="bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg">
@@ -83,7 +95,7 @@ export default function ExplanationText({ comparisonData }: ExplanationTextProps
             Don't let price guessing impact your revenue!
           </p>
           <p className="text-gray-600 mt-2">
-            According to the simulation results, the right price choice could bring you a <strong>{profitImprovement.toFixed(2)}%</strong> profit improvement.
+            According to the simulation results, the right price choice could bring you a <strong>{profitImprovement >= 500 ? '500+' : profitImprovement.toFixed(2)}%</strong> profit improvement.
             Start A/B Testing now and turn simulation into actual revenue.
           </p>
           <p className="text-gray-600 mt-2">
