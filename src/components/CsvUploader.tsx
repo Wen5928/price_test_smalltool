@@ -13,8 +13,8 @@ export interface ProductVariant {
   category: string;
   sku?: string;
   status: string;
-  uniqueId?: string; // 添加唯一ID
-  // 新增可能的 CSV 欄位
+  uniqueId?: string; // Add unique ID
+  // Additional possible CSV fields
   weight?: number; // Variant Grams
   tags?: string; // Tags
   type?: string; // Type
@@ -23,7 +23,7 @@ export interface ProductVariant {
   tariff?: boolean; // tariff (product.metafields.custom.tariff)
 }
 
-// 保持向後相容的介面
+// Maintain backward compatible interface
 export interface ProductData {
   handle: string;
   title: string;
@@ -49,7 +49,7 @@ export default function CsvUploader({
   const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [displayLimit, setDisplayLimit] = useState(39); // 預設顯示39個商品（13排×3個）
+  const [displayLimit, setDisplayLimit] = useState(39); // Default display 39 products (13 rows x 3)
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [filterVendor, setFilterVendor] = useState<string>('all');
 
@@ -67,11 +67,11 @@ export default function CsvUploader({
           const parsedVariants: ProductVariant[] = [];
           
           results.data.forEach((row: any, rowIndex: number) => {
-            // 只處理有 Handle 和 Variant Price 的行（跳過只有圖片信息的行）
+            // Only process rows with Handle and Variant Price (skip rows with only image info)
             if (row['Handle'] && row['Variant Price'] && parseFloat(row['Variant Price']) > 0) {
               const variant: ProductVariant = {
                 handle: row['Handle'] || '',
-                title: row['Title'] || row['Handle'], // 如果沒有 Title，使用 Handle
+                title: row['Title'] || row['Handle'], // If no Title, use Handle
                 variantOption: row['Option1 Value'] || 'Default Title',
                 price: parseFloat(row['Variant Price']) || 0,
                 compareAtPrice: row['Variant Compare At Price'] ? parseFloat(row['Variant Compare At Price']) : undefined,
@@ -81,8 +81,8 @@ export default function CsvUploader({
                 category: row['Product Category'] || 'Uncategorized',
                 sku: row['Variant SKU'] || undefined,
                 status: row['Status'] || 'unknown',
-                uniqueId: `${row['Handle']}-${row['Option1 Value'] || 'default'}-${rowIndex}`, // 添加行索引確保唯一性
-                // 新增欄位解析
+                uniqueId: `${row['Handle']}-${row['Option1 Value'] || 'default'}-${rowIndex}`, // Add row index to ensure uniqueness
+                // Parse additional fields
                 weight: row['Variant Grams'] ? parseFloat(row['Variant Grams']) : undefined,
                 tags: row['Tags'] || undefined,
                 type: row['Type'] || undefined,
@@ -91,7 +91,7 @@ export default function CsvUploader({
                 tariff: row['tariff (product.metafields.custom.tariff)'] === 'TRUE'
               };
               
-              // 過濾掉價格為 0 或負數的商品
+              // Filter out products with price 0 or negative
               if (variant.price > 0) {
                 parsedVariants.push(variant);
               }
@@ -139,14 +139,14 @@ export default function CsvUploader({
     
     const variantId = `${variant.handle}-${variant.variantOption}`;
     
-    // 防止重複選擇同一個商品
+    // Prevent selecting the same product twice
     if (selectedVariant === variantId) {
       return;
     }
     
     setSelectedVariant(variantId);
     
-    // 轉換為舊格式以保持相容性
+    // Convert to old format to maintain compatibility
     const productData: ProductData = {
       handle: variant.handle,
       title: `${variant.title} - ${variant.variantOption}`,
@@ -158,7 +158,7 @@ export default function CsvUploader({
     onProductSelect(productData, variant);
   };
 
-  // 過濾和搜尋邏輯
+  // Filter and search logic
   const filteredVariants = variants.filter(variant => {
     const matchesSearch = searchTerm === '' || 
       variant.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -173,7 +173,7 @@ export default function CsvUploader({
     return matchesSearch && matchesStatus && matchesCategory && matchesVendor;
   });
 
-  // 獲取選項
+  // Get options
   const statusOptions = ['all', ...Array.from(new Set(variants.map(v => v.status)))];
   const categoryOptions = ['all', ...Array.from(new Set(variants.map(v => v.category)))];
   const vendorOptions = ['all', ...Array.from(new Set(variants.map(v => v.vendor)))];
@@ -218,72 +218,72 @@ export default function CsvUploader({
 
       {variants.length > 0 && (
         <div className="space-y-4">
-          {/* 統計信息 */}
+          {/* Statistics */}
           <div className="bg-blue-50 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-semibold text-blue-800">📊 檔案分析結果</h3>
+                <h3 className="font-semibold text-blue-800">📊 File Analysis Results</h3>
                 <p className="text-sm text-blue-600 mt-1">
-                  找到 {variants.length} 個商品變體，{statusOptions.length - 1} 種狀態
+                  Found {variants.length} product variants, {statusOptions.length - 1} statuses
                 </p>
               </div>
               <div className="text-right">
                 <div className="text-2xl font-bold text-blue-600">{filteredVariants.length}</div>
-                <div className="text-xs text-blue-500">符合條件</div>
+                <div className="text-xs text-blue-500">Matching criteria</div>
               </div>
             </div>
           </div>
 
-          {/* 搜尋和過濾器 */}
+          {/* Search and filters */}
           <div className="space-y-3">
-            {/* 搜尋列 */}
+            {/* Search bar */}
             <div>
               <input
                 type="text"
-                placeholder="搜尋商品名稱、Handle、變體或供應商..."
+                placeholder="Search product name, handle, variant or vendor..."
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
-                  setDisplayLimit(39); // 重置顯示限制
+                  setDisplayLimit(39); // Reset display limit
                 }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
             
-            {/* 過濾器列 */}
+            {/* Filter row */}
             <div className="flex gap-3 flex-wrap">
-              {/* 狀態過濾 */}
+              {/* Status filter */}
               <div className="flex-1 min-w-[150px]">
-                <label className="block text-xs font-medium text-gray-600 mb-1">狀態</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Status</label>
                 <select
                   value={filterStatus}
                   onChange={(e) => {
                     setFilterStatus(e.target.value);
-                    setDisplayLimit(39); // 重置顯示限制
+                    setDisplayLimit(39); // Reset display limit
                   }}
                   className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                 >
-                  <option value="all">所有狀態</option>
+                  <option value="all">All statuses</option>
                   {statusOptions.filter(s => s !== 'all').map(status => (
                     <option key={status} value={status}>
-                      {status === 'active' ? '上架中' : status === 'draft' ? '草稿' : status}
+                      {status === 'active' ? 'Active' : status === 'draft' ? 'Draft' : status}
                     </option>
                   ))}
                 </select>
               </div>
               
-              {/* 分類過濾 */}
+              {/* Category filter */}
               <div className="flex-1 min-w-[200px]">
-                <label className="block text-xs font-medium text-gray-600 mb-1">產品分類</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Product Category</label>
                 <select
                   value={filterCategory}
                   onChange={(e) => {
                     setFilterCategory(e.target.value);
-                    setDisplayLimit(39); // 重置顯示限制
+                    setDisplayLimit(39); // Reset display limit
                   }}
                   className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                 >
-                  <option value="all">所有分類</option>
+                  <option value="all">All categories</option>
                   {categoryOptions.filter(c => c !== 'all').map(category => (
                     <option key={category} value={category}>
                       {category}
@@ -292,18 +292,18 @@ export default function CsvUploader({
                 </select>
               </div>
               
-              {/* 供應商過濾 */}
+              {/* Vendor filter */}
               <div className="flex-1 min-w-[150px]">
-                <label className="block text-xs font-medium text-gray-600 mb-1">供應商</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Vendor</label>
                 <select
                   value={filterVendor}
                   onChange={(e) => {
                     setFilterVendor(e.target.value);
-                    setDisplayLimit(39); // 重置顯示限制
+                    setDisplayLimit(39); // Reset display limit
                   }}
                   className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                 >
-                  <option value="all">所有供應商</option>
+                  <option value="all">All vendors</option>
                   {vendorOptions.filter(v => v !== 'all').map(vendor => (
                     <option key={vendor} value={vendor}>
                       {vendor}
@@ -315,7 +315,7 @@ export default function CsvUploader({
           </div>
 
           <div className="border rounded-lg bg-white">
-            {/* 垂直滾動商品顯示 */}
+            {/* Vertical scrolling product display */}
             <div className="max-h-[600px] overflow-y-auto p-4">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredVariants.slice(0, displayLimit).map((variant, index) => {
@@ -335,7 +335,7 @@ export default function CsvUploader({
                       }`}
                     >
                       <div className="p-4 h-full flex flex-col">
-                        {/* 商品標題和狀態 */}
+                        {/* Product title and status */}
                         <div className="flex justify-between items-start mb-3">
                           <div className="flex-1 min-w-0">
                             <h4 className="font-medium text-sm text-gray-900 truncate">
@@ -356,11 +356,11 @@ export default function CsvUploader({
                               ? 'bg-yellow-100 text-yellow-800'
                               : 'bg-gray-100 text-gray-800'
                           }`}>
-                            {variant.status === 'active' ? '上架' : variant.status === 'draft' ? '草稿' : variant.status}
+                            {variant.status === 'active' ? 'Active' : variant.status === 'draft' ? 'Draft' : variant.status}
                           </span>
                         </div>
 
-                        {/* 價格信息 */}
+                        {/* Price information */}
                         <div className="space-y-2 mb-3">
                           <div className="flex justify-between items-center">
                             <span className="text-lg font-bold text-gray-900">
@@ -377,27 +377,27 @@ export default function CsvUploader({
                           )}
                         </div>
 
-                        {/* 成本分析 */}
+                        {/* Cost analysis */}
                         <div className="space-y-1 text-xs text-gray-600 flex-1">
                           <div className="flex justify-between">
-                            <span>成本:</span>
+                            <span>Cost:</span>
                             <span>${variant.costPerItem.toFixed(2)}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span>運費:</span>
+                            <span>Shipping:</span>
                             <span>${shippingFee.toFixed(2)}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span>手續費:</span>
+                            <span>Transaction Fee:</span>
                             <span>${transactionFee.toFixed(2)}</span>
                           </div>
                           <div className="flex justify-between border-t pt-1 font-semibold">
-                            <span>總成本:</span>
+                            <span>Total Cost:</span>
                             <span>${totalCost.toFixed(2)}</span>
                           </div>
                         </div>
 
-                        {/* 利潤率 */}
+                        {/* Profit margin */}
                         <div className="mt-3 pt-3 border-t">
                           <div className="text-center">
                             <div className={`text-lg font-bold ${
@@ -405,7 +405,7 @@ export default function CsvUploader({
                             }`}>
                               {margin.toFixed(1)}%
                             </div>
-                            <div className="text-xs text-gray-500">利潤率</div>
+                            <div className="text-xs text-gray-500">Profit Margin</div>
                             <div className={`mt-1 w-full h-2 rounded-full ${
                               margin > 20 ? 'bg-green-100' : margin > 10 ? 'bg-yellow-100' : 'bg-red-100'
                             }`}>
@@ -424,23 +424,23 @@ export default function CsvUploader({
                 })}
               </div>
               
-              {/* 載入更多按鈕 */}
+              {/* Load more button */}
               {filteredVariants.length > displayLimit && (
                 <div className="text-center mt-4">
                   <button
                     onClick={() => setDisplayLimit(prev => prev + 39)}
                     className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
                   >
-                    載入更多商品 ({filteredVariants.length - displayLimit} 個剩餘)
+                    Load more products ({filteredVariants.length - displayLimit} remaining)
                   </button>
                 </div>
               )}
               
-              {/* 顯示統計 */}
+              {/* Display statistics */}
               <div className="mt-4 text-center text-sm text-gray-500">
-                顯示 {Math.min(displayLimit, filteredVariants.length)} / {filteredVariants.length} 個商品
+                Showing {Math.min(displayLimit, filteredVariants.length)} / {filteredVariants.length} products
                 {filteredVariants.length < variants.length && (
-                  <span> (已篩選 {variants.length - filteredVariants.length} 個)</span>
+                  <span> ({variants.length - filteredVariants.length} filtered)</span>
                 )}
               </div>
             </div>

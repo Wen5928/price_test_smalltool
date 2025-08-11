@@ -136,7 +136,7 @@ export default function ResultChart({
             </div>
             {isCSVMode && (
               <div className="text-xs text-gray-500 ml-2">
-                (固定)
+                (Fixed)
               </div>
             )}
           </div>
@@ -185,7 +185,7 @@ export default function ResultChart({
         <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-semibold text-blue-800 text-sm">📦 已選商品</h3>
+              <h3 className="font-semibold text-blue-800 text-sm">📦 Selected Product</h3>
               <p className="text-blue-700 text-sm mt-1">
                 {selectedProduct.title}
                 {selectedProduct.variantOption !== 'Default Title' && (
@@ -197,12 +197,12 @@ export default function ResultChart({
             </div>
             <div className="text-right">
               <div className="text-lg font-bold text-blue-800">${selectedProduct.price}</div>
-              <div className="text-xs text-blue-600">當前價格</div>
+              <div className="text-xs text-blue-600">Current Price</div>
             </div>
           </div>
           {selectedProduct.vendor && (
             <div className="mt-2 text-xs text-blue-600">
-              供應商: {selectedProduct.vendor} | 分類: {selectedProduct.category}
+              Vendor: {selectedProduct.vendor} | Category: {selectedProduct.category}
             </div>
           )}
         </div>

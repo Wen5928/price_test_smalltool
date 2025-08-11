@@ -36,7 +36,7 @@ export default function Home() {
   const effectiveConversionRate = inputMode === 'csv' && isProductSelected ? conversionRate : undefined;
   const effectiveGmv = inputMode === 'csv' && isProductSelected ? gmv : undefined;
   
-  // 在 CSV 模式下，傳遞實際商品價格作為 originalPrice
+  // In CSV mode, pass actual product price as originalPrice
   const originalPrice = inputMode === 'csv' && isProductSelected ? priceA : undefined;
   const chartData = generateChartData(mu, sigma, cost, effectiveTraffic, minPrice, maxPrice, cogs, shippingFee, transactionFeePercent, effectiveConversionRate, effectiveGmv, originalPrice);
   const comparisonData = generateComparisonData(mu, sigma, cost, effectiveTraffic, minPrice, maxPrice, priceA, priceB, cogs, shippingFee, transactionFeePercent, effectiveConversionRate, effectiveGmv);
@@ -53,44 +53,44 @@ export default function Home() {
     setCogs(product.costPerItem);
     setSelectedProduct(variant);
     
-    // 在 CSV 模式下，將 mu 設定為產品價格，這樣 optimal price 計算才會正確
+    // In CSV mode, set mu to product price so optimal price calculation will be correct
     if (inputMode === 'csv') {
       setMu(product.price);
-      // cost 在 CSV 模式下設為 0，因為實際成本已經在 cogs 中
+      // cost is set to 0 in CSV mode because actual cost is already in cogs
       setCost(0);
       
-      // 只有在商品有運送需求時才調整運費，否則保持預設
+      // Only adjust shipping fee when product has shipping requirements, otherwise keep default
       if (variant.requiresShipping !== undefined) {
         if (!variant.requiresShipping) {
-          setShippingFee(0); // 數位商品或不需運送的商品
+          setShippingFee(0); // Digital products or products that don't require shipping
         }
-        // 如果需要運送但沒有更多信息，保持原本的設定
+        // If requires shipping but no more info, keep original setting
       }
       
-      // 如果商品有重量信息，可以根據重量調整運費
+      // If product has weight info, can adjust shipping fee based on weight
       if (variant.weight !== undefined && variant.weight > 0 && variant.requiresShipping) {
-        if (variant.weight > 1000) { // 超過 1kg
-          setShippingFee(Math.max(shippingFee, 9.99)); // 重物件較高運費
+        if (variant.weight > 1000) { // Over 1kg
+          setShippingFee(Math.max(shippingFee, 9.99)); // Higher shipping fee for heavy items
         }
       }
       
-      // 如果有商品類型信息，可以用來判斷是否為數位商品
+      // If there's product type info, can use it to determine if it's a digital product
       if (variant.type && variant.type.toLowerCase().includes('digital')) {
         setShippingFee(0);
       }
       
-      // 根據 tariff 資訊調整 transaction fee (%)
+      // Adjust transaction fee (%) based on tariff info
       if (variant.tariff !== undefined) {
         if (variant.tariff) {
-          // 如果有關稅，增加 transaction fee 百分比
-          setTransactionFeePercent(3.9); // 包含關稅的較高手續費率
+          // If there's tariff, increase transaction fee percentage
+          setTransactionFeePercent(3.9); // Higher handling fee rate including tariff
         } else {
-          // 沒有關稅，使用標準 transaction fee
-          setTransactionFeePercent(2.9); // 標準支付處理費用百分比
+          // No tariff, use standard transaction fee
+          setTransactionFeePercent(2.9); // Standard payment processing fee percentage
         }
       }
       
-      // 根據 tags 調整一些設定（如果有的話）
+      // Adjust some settings based on tags (if any)
       if (variant.tags) {
         const tags = variant.tags.toLowerCase();
         if (tags.includes('free-shipping') || tags.includes('free_shipping')) {
