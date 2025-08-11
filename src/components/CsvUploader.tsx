@@ -1,5 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import Papa from 'papaparse';
+import toast from 'react-hot-toast';
+import EmptyState from './EmptyState';
+import LoadingSkeleton from './LoadingSkeleton';
 
 export interface ProductVariant {
   handle: string;
@@ -57,25 +60,45 @@ export default function CsvUploader({
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Check file type
+    if (!file.name.endsWith('.csv')) {
+      toast.error('Please upload a CSV file');
+      return;
+    }
+
+    // Check file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size must be less than 5MB');
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
+    setVariants([]); // Clear previous data
+    setSelectedVariant(null); // Clear previous selection
+    
+    const loadingToast = toast.loading('Uploading CSV file...');
 
     Papa.parse(file, {
       header: true,
       complete: (results) => {
+        toast.dismiss(loadingToast); // Dismiss loading toast
         try {
           const parsedVariants: ProductVariant[] = [];
           
           results.data.forEach((row: any, rowIndex: number) => {
             // Only process rows with Handle and Variant Price (skip rows with only image info)
-            if (row['Handle'] && row['Variant Price'] && parseFloat(row['Variant Price']) > 0) {
+            const price = parseFloat(row['Variant Price']) || 0;
+            const costPerItem = parseFloat(row['Cost per item']) || 0;
+            
+            if (row['Handle'] && row['Variant Price'] && price > 0) {
               const variant: ProductVariant = {
                 handle: row['Handle'] || '',
                 title: row['Title'] || row['Handle'], // If no Title, use Handle
                 variantOption: row['Option1 Value'] || 'Default Title',
-                price: parseFloat(row['Variant Price']) || 0,
+                price: price,
                 compareAtPrice: row['Variant Compare At Price'] ? parseFloat(row['Variant Compare At Price']) : undefined,
-                costPerItem: parseFloat(row['Cost per item']) || 0,
+                costPerItem: costPerItem,
                 requiresShipping: row['Variant Requires Shipping'] === 'true',
                 vendor: row['Vendor'] || '',
                 category: row['Product Category'] || 'Uncategorized',
@@ -91,30 +114,70 @@ export default function CsvUploader({
                 tariff: row['tariff (product.metafields.custom.tariff)'] === 'TRUE'
               };
               
-              // Filter out products with price 0 or negative
-              if (variant.price > 0) {
-                parsedVariants.push(variant);
-              }
+              // Add variant to list
+              parsedVariants.push(variant);
             }
           });
 
+          console.log(`Total rows processed: ${results.data.length}, Valid variants found: ${parsedVariants.length}`);
+          
           if (parsedVariants.length === 0) {
             setError('No valid product variants found in CSV file');
+            toast.error(`No valid products found. Processed ${results.data.length} rows. Please check your CSV format.`);
           } else {
             setVariants(parsedVariants);
+            toast.success(`Successfully loaded ${parsedVariants.length} products`);
+            
+            // Automatically select the first product after successful upload
+            const firstVariant = parsedVariants[0];
+            const firstVariantId = `${firstVariant.handle}-${firstVariant.variantOption}`;
+            setSelectedVariant(firstVariantId);
+            
+            // Convert to old format to maintain compatibility
+            const productData: ProductData = {
+              handle: firstVariant.handle,
+              title: `${firstVariant.title} - ${firstVariant.variantOption}`,
+              price: firstVariant.price,
+              costPerItem: firstVariant.costPerItem,
+              requiresShipping: firstVariant.requiresShipping
+            };
+            
+            onProductSelect(productData, firstVariant);
+            toast.success(`Selected: ${firstVariant.title}`, { duration: 2000 });
+            
+            // Check for extremely high prices and warn user
+            const extremelyHighPriceProducts = parsedVariants.filter(v => v.price > 1000000);
+            if (extremelyHighPriceProducts.length > 0) {
+              const maxPrice = Math.max(...extremelyHighPriceProducts.map(v => v.price));
+              toast(
+                `⚠️ Warning: Found ${extremelyHighPriceProducts.length} products with very high prices (max: $${maxPrice.toLocaleString()}). Chart performance may be affected.`, 
+                { 
+                  duration: 6000,
+                  style: {
+                    background: '#f59e0b',
+                    color: 'white',
+                  }
+                }
+              );
+            }
           }
         } catch (err) {
-          setError('Error parsing CSV file: ' + (err as Error).message);
+          const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+          setError('Error parsing CSV file: ' + errorMessage);
+          toast.error('Failed to parse CSV: ' + errorMessage);
         } finally {
           setIsLoading(false);
         }
       },
       error: (err) => {
-        setError('Error reading CSV file: ' + err.message);
+        toast.dismiss(loadingToast); // Dismiss loading toast
+        const errorMessage = 'Error reading CSV file: ' + err.message;
+        setError(errorMessage);
+        toast.error(errorMessage);
         setIsLoading(false);
       }
     });
-  }, []);
+  }, [onProductSelect]);
 
   const handleDrop = useCallback((event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -141,6 +204,7 @@ export default function CsvUploader({
     
     // Prevent selecting the same product twice
     if (selectedVariant === variantId) {
+      toast('This product is already selected', { icon: '✓' });
       return;
     }
     
@@ -156,6 +220,22 @@ export default function CsvUploader({
     };
     
     onProductSelect(productData, variant);
+    
+    // Check if selected product has extremely high price and warn user
+    if (variant.price > 1000000) {
+      toast(
+        `⚠️ High price alert: $${variant.price.toLocaleString()}. Chart generation may take longer.`, 
+        { 
+          duration: 4000,
+          style: {
+            background: '#f59e0b',
+            color: 'white',
+          }
+        }
+      );
+    } else {
+      toast.success(`Selected: ${variant.title}`, { duration: 2000 });
+    }
   };
 
   // Filter and search logic
@@ -207,7 +287,10 @@ export default function CsvUploader({
       </div>
 
       {isLoading && (
-        <div className="text-center text-gray-600">Loading CSV file...</div>
+        <div className="space-y-4">
+          <div className="text-center text-gray-600">Processing CSV file...</div>
+          <LoadingSkeleton count={6} />
+        </div>
       )}
 
       {error && (
@@ -317,6 +400,23 @@ export default function CsvUploader({
           <div className="border rounded-lg bg-white">
             {/* Vertical scrolling product display */}
             <div className="max-h-[600px] overflow-y-auto p-4">
+              {filteredVariants.length === 0 ? (
+                <EmptyState
+                  icon="🔍"
+                  title="No products found"
+                  description="Try adjusting your filters or search terms to find products."
+                  action={{
+                    label: "Clear all filters",
+                    onClick: () => {
+                      setSearchTerm('');
+                      setFilterStatus('all');
+                      setFilterCategory('all');
+                      setFilterVendor('all');
+                      toast.success('Filters cleared');
+                    }
+                  }}
+                />
+              ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredVariants.slice(0, displayLimit).map((variant, index) => {
                   const transactionFee = variant.price * (transactionFeePercent / 100);
@@ -423,9 +523,10 @@ export default function CsvUploader({
                   );
                 })}
               </div>
+              )}
               
               {/* Load more button */}
-              {filteredVariants.length > displayLimit && (
+              {filteredVariants.length > 0 && filteredVariants.length > displayLimit && (
                 <div className="text-center mt-4">
                   <button
                     onClick={() => setDisplayLimit(prev => prev + 39)}

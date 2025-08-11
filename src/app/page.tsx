@@ -8,6 +8,7 @@ import ComparisonTable from '@/components/ComparisonTable';
 import CsvUploader, { ProductData } from '@/components/CsvUploader';
 import OptimalPriceConclusion from '@/components/OptimalPriceConclusion';
 import HelpManual from '@/components/HelpManual';
+import Tooltip from '@/components/Tooltip';
 // import ExportSummary from '@/components/ExportSummary';  // Currently not in use
 import { generateComparisonData, generateChartData, generateEnhancedChartData, OECType }  from '@/utils/math';
 
@@ -30,6 +31,7 @@ export default function Home() {
   const [sellingTraffic, setSellingTraffic] = useState(1000);
   const [conversionRate, setConversionRate] = useState(50);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [targetConversionRate, setTargetConversionRate] = useState<number>(3.0);
 
   // Use sellingTraffic for CSV mode, traffic for manual mode
   const effectiveTraffic = inputMode === 'csv' ? sellingTraffic : traffic;
@@ -40,7 +42,7 @@ export default function Home() {
   const originalPrice = inputMode === 'csv' && isProductSelected ? priceA : undefined;
   const chartData = generateChartData(mu, sigma, cost, effectiveTraffic, minPrice, maxPrice, cogs, shippingFee, transactionFeePercent, effectiveConversionRate, effectiveGmv, originalPrice);
   const comparisonData = generateComparisonData(mu, sigma, cost, effectiveTraffic, minPrice, maxPrice, priceA, priceB, cogs, shippingFee, transactionFeePercent, effectiveConversionRate, effectiveGmv);
-  const enhancedData = generateEnhancedChartData(mu, sigma, cost, effectiveTraffic, minPrice, maxPrice, oec, cogs, shippingFee, transactionFeePercent, effectiveConversionRate, effectiveGmv, priceA);
+  const enhancedData = generateEnhancedChartData(mu, sigma, cost, effectiveTraffic, minPrice, maxPrice, oec, cogs, shippingFee, transactionFeePercent, effectiveConversionRate, effectiveGmv, priceA, targetConversionRate);
 
   // Adjust maxPrice if it's less than or equal to optimal price
   useEffect(() => {
@@ -173,7 +175,19 @@ export default function Home() {
 
                 {/* Input Parameters */}
                 <div className="flex-1">
-                  <h3 className="font-semibold mb-3">Input Parameters</h3>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-semibold">Input Parameters</h3>
+                    {inputMode === 'csv' && (
+                      <div className="flex items-center gap-1 text-xs text-gray-500">
+                        <span>Profit Margin</span>
+                        <Tooltip content="Profit Margin indicates the percentage of revenue remaining after deducting all costs (COGS, shipping, transaction fees). Used to ensure pricing recommendations maintain healthy business margins." preferredPosition="right">
+                          <svg className="w-3 h-3 text-gray-400 hover:text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                          </svg>
+                        </Tooltip>
+                      </div>
+                    )}
+                  </div>
                   {inputMode === 'csv' ? (
                     <CsvUploader 
                       onProductSelect={handleProductSelect} 
@@ -217,7 +231,14 @@ export default function Home() {
                 <div className="border border-gray-200 rounded p-4 bg-gray-50">
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     <label className="block">
-                      <span className="text-xs font-medium text-gray-600">Shipping Fee ($):</span>
+                      <span className="flex items-center gap-1 text-xs font-medium text-gray-600">
+                        Shipping Fee ($):
+                        <Tooltip content="Shipping cost charged to customers. Set to $0 for digital products or free shipping. Auto-adjusts based on product weight." preferredPosition="right">
+                          <svg className="w-3 h-3 text-gray-400 hover:text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                          </svg>
+                        </Tooltip>
+                      </span>
                       <input 
                         type="number" 
                         value={shippingFee} 
@@ -228,7 +249,14 @@ export default function Home() {
                       />
                     </label>
                     <label className="block">
-                      <span className="text-xs font-medium text-gray-600">Transaction Fee (%):</span>
+                      <span className="flex items-center gap-1 text-xs font-medium text-gray-600">
+                        Transaction Fee (%):
+                        <Tooltip content="Percentage charged by payment platforms like Stripe or PayPal - typically ranges from 2.9% to 3.9% and auto-adjusts based on tariffs and international processing.">
+                          <svg className="w-3 h-3 text-gray-400 hover:text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                          </svg>
+                        </Tooltip>
+                      </span>
                       <input 
                         type="number" 
                         value={transactionFeePercent} 
@@ -240,7 +268,14 @@ export default function Home() {
                       />
                     </label>
                     <label className="block">
-                      <span className="text-xs font-medium text-gray-600">GMV ($):</span>
+                      <span className="flex items-center gap-1 text-xs font-medium text-gray-600">
+                        GMV ($):
+                        <Tooltip content="Gross Merchandise Value - total sales amount before costs. Used to calibrate the model with actual sales data for accurate predictions.">
+                          <svg className="w-3 h-3 text-gray-400 hover:text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                          </svg>
+                        </Tooltip>
+                      </span>
                       <input 
                         type="number" 
                         value={gmv} 
@@ -251,7 +286,14 @@ export default function Home() {
                       />
                     </label>
                     <label className="block">
-                      <span className="text-xs font-medium text-gray-600">Traffic:</span>
+                      <span className="flex items-center gap-1 text-xs font-medium text-gray-600">
+                        Traffic:
+                        <Tooltip content="Number of visitors/potential customers who will see your product. Represents expected audience size for price testing." preferredPosition="right">
+                          <svg className="w-3 h-3 text-gray-400 hover:text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                          </svg>
+                        </Tooltip>
+                      </span>
                       <input 
                         type="number" 
                         value={sellingTraffic} 
@@ -262,7 +304,14 @@ export default function Home() {
                       />
                     </label>
                     <label className="block">
-                      <span className="text-xs font-medium text-gray-600">Conversion Rate (%):</span>
+                      <span className="flex items-center gap-1 text-xs font-medium text-gray-600">
+                        Conversion Rate (%):
+                        <Tooltip content="Percentage of visitors who make a purchase at the current price point - used to calibrate the model with actual performance data for more accurate predictions.">
+                          <svg className="w-3 h-3 text-gray-400 hover:text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                          </svg>
+                        </Tooltip>
+                      </span>
                       <input 
                         type="number" 
                         value={conversionRate} 
@@ -295,6 +344,8 @@ export default function Home() {
                     setOec={setOec}
                     isCSVMode={inputMode === 'csv'}
                     selectedProduct={selectedProduct}
+                    targetConversionRate={targetConversionRate}
+                    setTargetConversionRate={setTargetConversionRate}
                   />
                 ) : (
                   <div className="h-[400px] flex items-center justify-center text-gray-500">

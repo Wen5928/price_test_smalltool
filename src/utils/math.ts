@@ -49,32 +49,49 @@ export function generateChartData(
 
   // Ensure valid inputs and price range
   const safeMinPrice = Math.max(minPrice || 1, 0.01);
-  const safeMaxPrice = Math.max(maxPrice || safeMinPrice + 10, safeMinPrice);
+  const rawMaxPrice = Math.max(maxPrice || safeMinPrice + 10, safeMinPrice);
+  
+  // Check for extremely large price ranges that could cause performance issues
+  const maxRecommendedRange = 10000; // Maximum recommended price points for performance
+  const priceRange = rawMaxPrice - safeMinPrice;
+  
+  let safeMaxPrice = rawMaxPrice;
+  let useSampling = false;
+  let sampleStep = 1;
+  
+  if (priceRange > maxRecommendedRange) {
+    console.warn(`Price range is very large (${priceRange.toLocaleString()} points). Using sampling for performance.`);
+    useSampling = true;
+    sampleStep = Math.ceil(priceRange / maxRecommendedRange);
+  }
+  
   const safeSigma = Math.max(sigma || 1, 0.01);
   const safeTraffic = Math.max(traffic || 1000, 1);
 
   // If actual conversion rate is provided, use it as base for calculations
   let baseConversionRate: number;
   if (actualConversionRate !== undefined && originalPrice !== undefined) {
-    // Calculate the base conversion rate at original price from actual data
+    // Use the actual conversion rate as the base (at 0% price change)
     baseConversionRate = actualConversionRate / 100;
   } else {
-    // Fall back to theoretical model
-    baseConversionRate = normCDF(mu - (originalPrice || mu), 0, safeSigma);
+    // Fall back to theoretical model - assume mu is the reference price (0% change)
+    baseConversionRate = normCDF(0, 0, safeSigma); // At reference price, no change
   }
 
-  for (let price = safeMinPrice; price <= safeMaxPrice; price++) {
+  for (let price = safeMinPrice; price <= safeMaxPrice; price += sampleStep) {
     let convRate: number;
     
     if (actualConversionRate !== undefined && originalPrice !== undefined) {
-      // Calculate conversion rate based on price elasticity from actual data
-      const theoreticalOriginal = normCDF(mu - originalPrice, 0, safeSigma);
-      const theoreticalNew = normCDF(mu - price, 0, safeSigma);
+      // Calculate conversion rate based on price percentage change from original price
+      const priceChangePercent = ((price - originalPrice) / originalPrice) * 100;
+      const theoreticalOriginal = normCDF(0, 0, safeSigma); // Base conversion at 0% change
+      const theoreticalNew = normCDF(-priceChangePercent, 0, safeSigma); // Negative because higher price = lower conversion
       const conversionMultiplier = theoreticalOriginal > 0 ? theoreticalNew / theoreticalOriginal : 1;
       convRate = baseConversionRate * conversionMultiplier;
     } else {
-      // Use pure theoretical model
-      convRate = normCDF(mu - price, 0, safeSigma);
+      // Use pure theoretical model with percentage change from mu (reference price)
+      const priceChangePercent = ((price - mu) / mu) * 100;
+      convRate = normCDF(-priceChangePercent, 0, safeSigma); // Negative because higher price = lower conversion
     }
     
     const revenue = price * safeTraffic * convRate;
@@ -135,7 +152,8 @@ export function generateEnhancedChartData(
   transactionFeePercent: number = 0,
   actualConversionRate?: number,
   gmv?: number,
-  originalPrice?: number
+  originalPrice?: number,
+  targetConversionRate?: number
 ): EnhancedChartData {
   const chartData = generateChartData(mu, sigma, cost, traffic, minPrice, maxPrice, cogs, shippingFee, transactionFeePercent, actualConversionRate, gmv, originalPrice);
   
@@ -179,9 +197,31 @@ export function generateEnhancedChartData(
       break;
     case 'conversion':
       metricName = 'Conversion Rate';
-      optimalPoint = chartData.reduce((max, current) => 
-        current.conversionRate > max.conversionRate ? current : max
-      );
+      
+      if (targetConversionRate && targetConversionRate > 0) {
+        // Find the price point closest to the target conversion rate
+        optimalPoint = chartData.reduce((closest, current) => {
+          const closestDiff = Math.abs(closest.conversionRate - targetConversionRate);
+          const currentDiff = Math.abs(current.conversionRate - targetConversionRate);
+          return currentDiff < closestDiff ? current : closest;
+        });
+      } else {
+        // Original logic: find the point with highest conversion rate
+        // but with a reasonable minimum price constraint to avoid $1 optimization
+        const minReasonablePrice = Math.max(minPrice, cost * 1.5); // At least 50% margin
+        const reasonablePricePoints = chartData.filter(point => point.price >= minReasonablePrice);
+        
+        if (reasonablePricePoints.length > 0) {
+          optimalPoint = reasonablePricePoints.reduce((max, current) => 
+            current.conversionRate > max.conversionRate ? current : max
+          );
+        } else {
+          // Fallback to original logic if no reasonable price points
+          optimalPoint = chartData.reduce((max, current) => 
+            current.conversionRate > max.conversionRate ? current : max
+          );
+        }
+      }
       break;
   }
   
@@ -223,14 +263,16 @@ export function generateComparisonData(
     let convRate: number;
     
     if (actualConversionRate !== undefined && priceA !== undefined) {
-      // Calculate conversion rate based on price elasticity from actual data
-      const theoreticalOriginal = normCDF(mu - priceA, 0, sigma);
-      const theoreticalNew = normCDF(mu - price, 0, sigma);
+      // Calculate conversion rate based on price percentage change from priceA
+      const priceChangePercent = ((price - priceA) / priceA) * 100;
+      const theoreticalOriginal = normCDF(0, 0, sigma); // Base conversion at 0% change
+      const theoreticalNew = normCDF(-priceChangePercent, 0, sigma); // Negative because higher price = lower conversion
       const conversionMultiplier = theoreticalOriginal > 0 ? theoreticalNew / theoreticalOriginal : 1;
       convRate = (actualConversionRate / 100) * conversionMultiplier;
     } else {
-      // Use pure theoretical model
-      convRate = normCDF(mu - price, 0, sigma);
+      // Use pure theoretical model with percentage change from mu (reference price)
+      const priceChangePercent = ((price - mu) / mu) * 100;
+      convRate = normCDF(-priceChangePercent, 0, sigma); // Negative because higher price = lower conversion
     }
     
     const transactionFee = price * (transactionFeePercent / 100);

@@ -135,20 +135,7 @@ export default function HelpManual() {
                 </ul>
               </section>
 
-              {/* Tips */}
-              <section className="bg-yellow-50 p-3 rounded">
-                <h4 className="font-semibold text-yellow-700 mb-2 flex items-center gap-1">
-                  💡 Tips
-                </h4>
-                <ul className="space-y-1 pl-4 text-yellow-800">
-                  <li>• Keep profit margin above 20%</li>
-                  <li>• Use search function to quickly find specific products</li>
-                  <li>• Use category and vendor filters to narrow down scope</li>
-                  <li>• Load more products button shows 40 at a time</li>
-                  <li>• In CSV mode, original price is fixed, focus on adjusting new price</li>
-                  <li>• Compare different products to find optimal pricing strategy</li>
-                </ul>
-              </section>
+              
             </div>
 
             <div className="mt-4 pt-3 border-t border-gray-200 text-center">

@@ -38,6 +38,8 @@ interface ResultChartProps {
   setOec: (value: OECType) => void;
   isCSVMode?: boolean;
   selectedProduct?: any;
+  targetConversionRate?: number;
+  setTargetConversionRate?: (value: number) => void;
 }
 
 export default function ResultChart({ 
@@ -52,7 +54,9 @@ export default function ResultChart({
   oec,
   setOec,
   isCSVMode,
-  selectedProduct
+  selectedProduct,
+  targetConversionRate,
+  setTargetConversionRate
 }: ResultChartProps) {
   const priceRange = { min: Math.min(priceA, priceB), max: Math.max(priceA, priceB) };
 
@@ -172,7 +176,12 @@ export default function ResultChart({
 
         {/* Evaluation Focus Selector */}
         <div className="mt-6 pt-4 border-t border-gray-300">
-          <OecSelector oec={oec} setOec={setOec} />
+          <OecSelector 
+            oec={oec} 
+            setOec={setOec}
+            targetConversionRate={targetConversionRate}
+            setTargetConversionRate={setTargetConversionRate}
+          />
         </div>
       </div>
     );
