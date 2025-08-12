@@ -143,23 +143,66 @@ export default function CsvUploader({
             };
             
             onProductSelect(productData, firstVariant);
-            toast.success(`Selected: ${firstVariant.title}`, { duration: 2000 });
             
-            // Check for extremely high prices and warn user
-            const extremelyHighPriceProducts = parsedVariants.filter(v => v.price > 2000000);
-            if (extremelyHighPriceProducts.length > 0) {
-              const maxPrice = Math.max(...extremelyHighPriceProducts.map(v => v.price));
-              toast(
-                `⚠️ Warning: Found ${extremelyHighPriceProducts.length} products with extremely high prices (max: $${maxPrice.toLocaleString()}). Price elasticity calculations may be inaccurate at these price levels.`, 
-                { 
-                  duration: 8000,
-                  style: {
-                    background: '#f59e0b',
-                    color: 'white',
+            // Check if the automatically selected first product has extreme price
+            if (firstVariant.price > 2000000) {
+              // Use setTimeout to ensure the toast appears after the success message
+              setTimeout(() => {
+                const shouldRemove = window.confirm(
+                  `⚠️ Warning: The automatically selected product has an extremely high price ($${firstVariant.price.toLocaleString()}).\n\n` +
+                  `Price elasticity calculations may be inaccurate at this price level.\n\n` +
+                  `Would you like to remove this product and select another?\n\n` +
+                  `Click "OK" to remove it, or "Cancel" to keep it with reduced accuracy.`
+                );
+
+                if (shouldRemove) {
+                  // Remove the first variant from the list
+                  const filteredVariants = parsedVariants.filter(v => 
+                    !(v.handle === firstVariant.handle && v.variantOption === firstVariant.variantOption)
+                  );
+                  setVariants(filteredVariants);
+                  
+                  if (filteredVariants.length > 0) {
+                    // Auto-select the new first product
+                    const newFirstVariant = filteredVariants[0];
+                    const newFirstVariantId = `${newFirstVariant.handle}-${newFirstVariant.variantOption}`;
+                    setSelectedVariant(newFirstVariantId);
+                    
+                    const newProductData: ProductData = {
+                      handle: newFirstVariant.handle,
+                      title: `${newFirstVariant.title} - ${newFirstVariant.variantOption}`,
+                      price: newFirstVariant.price,
+                      costPerItem: newFirstVariant.costPerItem,
+                      requiresShipping: newFirstVariant.requiresShipping
+                    };
+                    
+                    onProductSelect(newProductData, newFirstVariant);
+                    toast.success(`Removed extreme price product. Selected: ${newFirstVariant.title}`, { duration: 4000 });
+                  } else {
+                    // No products remaining
+                    setSelectedVariant('');
+                    toast.error('No products remaining after removing extreme price item');
                   }
+                } else {
+                  // User chose to keep the extreme price product
+                  toast(
+                    `⚠️ Keeping product with extreme price. Analysis accuracy may be reduced.`, 
+                    { 
+                      duration: 4000,
+                      style: {
+                        background: '#f59e0b',
+                        color: 'white',
+                      }
+                    }
+                  );
                 }
-              );
+              }, 500); // Small delay to let the success message show first
+              
+              toast.success(`Selected: ${firstVariant.title}`, { duration: 2000 });
+            } else {
+              toast.success(`Selected: ${firstVariant.title}`, { duration: 2000 });
             }
+            
           }
         } catch (err) {
           const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
@@ -222,17 +265,60 @@ export default function CsvUploader({
     onProductSelect(productData, variant);
     
     // Check if selected product has extremely high price and warn user
-    if (variant.price > 1000000) {
-      toast(
-        `⚠️ High price alert: $${variant.price.toLocaleString()}. Chart generation may take longer.`, 
-        { 
-          duration: 4000,
-          style: {
-            background: '#f59e0b',
-            color: 'white',
-          }
-        }
+    if (variant.price > 2000000) {
+      const shouldRemove = window.confirm(
+        `⚠️ Warning: This product has an extremely high price ($${variant.price.toLocaleString()}).\n\n` +
+        `Price elasticity calculations may be inaccurate at this price level.\n\n` +
+        `Would you like to remove this product from the analysis?\n\n` +
+        `Click "OK" to remove it, or "Cancel" to keep it with reduced accuracy.`
       );
+
+      if (shouldRemove) {
+        // Remove this variant from the list
+        const filteredVariants = variants.filter(v => 
+          !(v.handle === variant.handle && v.variantOption === variant.variantOption)
+        );
+        setVariants(filteredVariants);
+        
+        // Clear selection since we're removing this product
+        setSelectedVariant('');
+        
+        toast.success(
+          `Removed "${variant.title}" due to extreme price. ${filteredVariants.length} products remaining.`,
+          { duration: 4000 }
+        );
+
+        // If there are still products, auto-select the first one
+        if (filteredVariants.length > 0) {
+          const newFirstVariant = filteredVariants[0];
+          const newFirstVariantId = `${newFirstVariant.handle}-${newFirstVariant.variantOption}`;
+          setSelectedVariant(newFirstVariantId);
+          
+          const newProductData: ProductData = {
+            handle: newFirstVariant.handle,
+            title: `${newFirstVariant.title} - ${newFirstVariant.variantOption}`,
+            price: newFirstVariant.price,
+            costPerItem: newFirstVariant.costPerItem,
+            requiresShipping: newFirstVariant.requiresShipping
+          };
+          
+          onProductSelect(newProductData, newFirstVariant);
+          toast.success(`Auto-selected: ${newFirstVariant.title}`, { duration: 2000 });
+        }
+      } else {
+        // User chose to keep the extreme price product
+        toast(
+          `⚠️ Keeping product with extreme price. Analysis accuracy may be reduced.`, 
+          { 
+            duration: 4000,
+            style: {
+              background: '#f59e0b',
+              color: 'white',
+            }
+          }
+        );
+        toast.success(`Selected: ${variant.title}`, { duration: 2000 });
+      }
     } else {
       toast.success(`Selected: ${variant.title}`, { duration: 2000 });
     }
