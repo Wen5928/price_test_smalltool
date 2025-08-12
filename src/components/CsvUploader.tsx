@@ -146,13 +146,13 @@ export default function CsvUploader({
             toast.success(`Selected: ${firstVariant.title}`, { duration: 2000 });
             
             // Check for extremely high prices and warn user
-            const extremelyHighPriceProducts = parsedVariants.filter(v => v.price > 1000000);
+            const extremelyHighPriceProducts = parsedVariants.filter(v => v.price > 2000000);
             if (extremelyHighPriceProducts.length > 0) {
               const maxPrice = Math.max(...extremelyHighPriceProducts.map(v => v.price));
               toast(
-                `⚠️ Warning: Found ${extremelyHighPriceProducts.length} products with very high prices (max: $${maxPrice.toLocaleString()}). Chart performance may be affected.`, 
+                `⚠️ Warning: Found ${extremelyHighPriceProducts.length} products with extremely high prices (max: $${maxPrice.toLocaleString()}). Price elasticity calculations may be inaccurate at these price levels.`, 
                 { 
-                  duration: 6000,
+                  duration: 8000,
                   style: {
                     background: '#f59e0b',
                     color: 'white',
