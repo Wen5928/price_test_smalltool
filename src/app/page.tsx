@@ -9,6 +9,7 @@ import CsvUploader, { ProductData } from '@/components/CsvUploader';
 import OptimalPriceConclusion from '@/components/OptimalPriceConclusion';
 import HelpManual from '@/components/HelpManual';
 import Tooltip from '@/components/Tooltip';
+import StepIndicator from '@/components/StepIndicator';
 // import ExportSummary from '@/components/ExportSummary';  // Currently not in use
 import { generateComparisonData, generateChartData, generateEnhancedChartData, OECType }  from '@/utils/math';
 
@@ -32,6 +33,7 @@ export default function Home() {
   const [conversionRate, setConversionRate] = useState(50);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [targetConversionRate, setTargetConversionRate] = useState<number>(3.0);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   // Use sellingTraffic for CSV mode, traffic for manual mode
   const effectiveTraffic = inputMode === 'csv' ? sellingTraffic : traffic;
@@ -130,207 +132,165 @@ export default function Home() {
     }
   };
 
+  // Handle step navigation
+  const handleStepClick = (stepId: string) => {
+    const element = document.getElementById(stepId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  // Generate steps based on current state
+  const getSteps = () => {
+    const steps = [
+      {
+        id: 'select-mode',
+        title: 'Select Input Method',
+        description: 'Choose CSV upload or manual input',
+        status: 'completed' as const,
+        onClick: () => handleStepClick('step-select-mode')
+      },
+      {
+        id: 'upload-data',
+        title: inputMode === 'csv' ? 'Upload & Select Product' : 'Configure Parameters',
+        description: inputMode === 'csv' 
+          ? 'Upload Shopify CSV and choose a product' 
+          : 'Enter product pricing parameters',
+        status: (inputMode === 'csv' ? isProductSelected : true) ? 'completed' as const : 'current' as const,
+        onClick: () => handleStepClick('step-upload-data')
+      },
+      {
+        id: 'adjust-settings',
+        title: 'Fine-tune Settings',
+        description: 'Adjust shipping, fees, and traffic data',
+        status: (inputMode === 'csv' ? isProductSelected : true) ? 'current' as const : 'pending' as const,
+        onClick: () => handleStepClick('step-adjust-settings')
+      },
+      {
+        id: 'analyze-results',
+        title: 'View Analysis',
+        description: 'Review pricing recommendations and insights',
+        status: (inputMode === 'csv' ? isProductSelected : true) ? 'current' as const : 'pending' as const,
+        onClick: () => handleStepClick('step-analyze-results')
+      }
+    ];
+
+    return steps;
+  };
+
   return (
-    <div className="min-h-screen p-8 sm:p-16 bg-white text-gray-800">
+    <div className="min-h-screen p-8 sm:p-16 bg-background text-foreground">
       <main className="max-w-7xl mx-auto flex flex-col gap-12">
         <header className="text-center">
-          <div className="flex items-center justify-center gap-4 mb-2">
+          <div className="flex items-center justify-center gap-4 mb-4">
             <img 
-              src="/Logomark color@2x.png" 
+              src="/company_icon.png" 
               alt="ABConvert Logo" 
               className="w-12 h-12"
             />
-            <h1 className="text-4xl font-bold">Price Test Easy Tool</h1>
+            <h1 className="text-4xl font-bold">Shopify A/B Price Testing Tool</h1>
           </div>
-          <p className="text-gray-600 text-lg">
-            Simulate how different prices impact your conversion rate, revenue, and profit.
+          <p className="text-gray-300 text-lg mb-8">
+            <strong>Professional pricing analysis tool designed exclusively for Shopify merchants.</strong><br/>
+            Upload your Shopify product CSV exports to analyze optimal pricing strategies.
           </p>
+          
+          {/* Step Indicator */}
+          <StepIndicator steps={getSteps()} />
         </header>
 
-        {/* Main content grid: Left panels + Right chart */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left column: All inputs in one section */}
-          <div>
-            <section>
-              <h2 className="text-2xl font-semibold mb-4">Configuration</h2>
-              <div className="border border-gray-200 rounded p-4 bg-gray-50 flex flex-col gap-6">
-                
-                {/* Mode selector */}
-                <div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleModeChange('csv')}
-                      className={`px-4 py-2 rounded ${inputMode === 'csv' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
-                    >
-                      Upload CSV
-                    </button>
-                    <button
-                      onClick={() => handleModeChange('manual')}
-                      className={`px-4 py-2 rounded ${inputMode === 'manual' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
-                    >
-                      Manual Input
-                    </button>
-                  </div>
-                </div>
-
-                {/* Input Parameters */}
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-semibold">Input Parameters</h3>
-                    {inputMode === 'csv' && (
-                      <div className="flex items-center gap-1 text-xs text-gray-500">
-                        <span>Profit Margin</span>
-                        <Tooltip content="Profit Margin indicates the percentage of revenue remaining after deducting all costs (COGS, shipping, transaction fees). Used to ensure pricing recommendations maintain healthy business margins." preferredPosition="right">
-                          <svg className="w-3 h-3 text-gray-400 hover:text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
-                          </svg>
-                        </Tooltip>
-                      </div>
-                    )}
-                  </div>
-                  {inputMode === 'csv' ? (
-                    <CsvUploader 
-                      onProductSelect={handleProductSelect} 
-                      shippingFee={shippingFee}
-                      transactionFeePercent={transactionFeePercent}
-                    />
-                  ) : (
-                    <InputPanel
-                      mu={mu}
-                      setMu={handleMuChange}
-                      sigma={sigma}
-                      setSigma={setSigma}
-                      cost={cost}
-                      setCost={setCost}
-                      cogs={cogs}
-                      setCogs={setCogs}
-                      shippingFee={shippingFee}
-                      setShippingFee={setShippingFee}
-                      transactionFeePercent={transactionFeePercent}
-                      setTransactionFeePercent={setTransactionFeePercent}
-                      traffic={traffic}
-                      setTraffic={setTraffic}
-                      minPrice={minPrice}
-                      setMinPrice={setMinPrice}
-                      maxPrice={maxPrice}
-                      setMaxPrice={setMaxPrice}
-                    />
-                  )}
-                </div>
-
-              </div>
-            </section>
+        {/* Step 1: Input Method Selection */}
+        <div id="step-select-mode" className="border border-default rounded-lg p-6 mb-8">
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <button 
+              onClick={() => handleStepClick('step-select-mode')}
+              className="w-6 h-6 bg-abc-blue-primary text-white rounded-full flex items-center justify-center text-sm hover:bg-abc-blue-secondary transition-colors cursor-pointer"
+            >
+              1
+            </button>
+            Select Input Method
+          </h2>
+          <div className="flex gap-3">
+            <button
+              onClick={() => handleModeChange('csv')}
+              className={`px-6 py-3 rounded-lg transition-colors font-medium border ${
+                inputMode === 'csv' 
+                  ? 'bg-abc-blue-primary text-white border-abc-blue-primary' 
+                  : 'bg-transparent text-gray-300 border-gray-600 hover:border-gray-500 hover:text-gray-200'
+              }`}
+            >
+              📊 Upload Shopify CSV
+            </button>
+            <button
+              onClick={() => handleModeChange('manual')}
+              className={`px-6 py-3 rounded-lg transition-colors font-medium border ${
+                inputMode === 'manual' 
+                  ? 'bg-abc-blue-primary text-white border-abc-blue-primary' 
+                  : 'bg-transparent text-gray-300 border-gray-600 hover:border-gray-500 hover:text-gray-200'
+              }`}
+            >
+              ⌨️ Manual Input
+            </button>
           </div>
+        </div>
 
-          {/* Right column: Configuration + Chart */}
-          <div className="space-y-6">
-            {/* Configuration Settings for CSV mode */}
-            {inputMode === 'csv' && (
-              <section>
-                <h2 className="text-2xl font-semibold mb-4">Configuration Settings</h2>
-                <div className="border border-gray-200 rounded p-4 bg-gray-50">
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    <label className="block">
-                      <span className="flex items-center gap-1 text-xs font-medium text-gray-600">
-                        Shipping Fee ($):
-                        <Tooltip content="Shipping cost charged to customers. Set to $0 for digital products or free shipping. Auto-adjusts based on product weight." preferredPosition="right">
-                          <svg className="w-3 h-3 text-gray-400 hover:text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
-                          </svg>
-                        </Tooltip>
-                      </span>
-                      <input 
-                        type="number" 
-                        value={shippingFee} 
-                        onChange={(e) => setShippingFee(parseFloat(e.target.value) || 0)}
-                        className="w-full mt-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                        step="0.01"
-                        min="0"
-                      />
-                    </label>
-                    <label className="block">
-                      <span className="flex items-center gap-1 text-xs font-medium text-gray-600">
-                        Transaction Fee (%):
-                        <Tooltip content="Percentage charged by payment platforms like Stripe or PayPal - typically ranges from 2.9% to 3.9% and auto-adjusts based on tariffs and international processing.">
-                          <svg className="w-3 h-3 text-gray-400 hover:text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
-                          </svg>
-                        </Tooltip>
-                      </span>
-                      <input 
-                        type="number" 
-                        value={transactionFeePercent} 
-                        onChange={(e) => setTransactionFeePercent(parseFloat(e.target.value) || 0)}
-                        className="w-full mt-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                        step="0.1"
-                        min="0"
-                        max="100"
-                      />
-                    </label>
-                    <label className="block">
-                      <span className="flex items-center gap-1 text-xs font-medium text-gray-600">
-                        GMV ($):
-                        <Tooltip content="Gross Merchandise Value - total sales amount before costs. Used to calibrate the model with actual sales data for accurate predictions.">
-                          <svg className="w-3 h-3 text-gray-400 hover:text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
-                          </svg>
-                        </Tooltip>
-                      </span>
-                      <input 
-                        type="number" 
-                        value={gmv} 
-                        onChange={(e) => setGmv(parseFloat(e.target.value) || 0)}
-                        className="w-full mt-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                        step="0.01"
-                        min="0"
-                      />
-                    </label>
-                    <label className="block">
-                      <span className="flex items-center gap-1 text-xs font-medium text-gray-600">
-                        Traffic:
-                        <Tooltip content="Number of visitors/potential customers who will see your product. Represents expected audience size for price testing." preferredPosition="right">
-                          <svg className="w-3 h-3 text-gray-400 hover:text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
-                          </svg>
-                        </Tooltip>
-                      </span>
-                      <input 
-                        type="number" 
-                        value={sellingTraffic} 
-                        onChange={(e) => setSellingTraffic(parseFloat(e.target.value) || 0)}
-                        className="w-full mt-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                        step="1"
-                        min="1"
-                      />
-                    </label>
-                    <label className="block">
-                      <span className="flex items-center gap-1 text-xs font-medium text-gray-600">
-                        Conversion Rate (%):
-                        <Tooltip content="Percentage of visitors who make a purchase at the current price point - used to calibrate the model with actual performance data for more accurate predictions.">
-                          <svg className="w-3 h-3 text-gray-400 hover:text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
-                          </svg>
-                        </Tooltip>
-                      </span>
-                      <input 
-                        type="number" 
-                        value={conversionRate} 
-                        onChange={(e) => setConversionRate(parseFloat(e.target.value) || 0)}
-                        className="w-full mt-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                        step="0.01"
-                        min="0"
-                        max="100"
-                      />
-                    </label>
-                  </div>
+        {/* CSV Mode: Two-column layout with product selection and preview */}
+        <div className={`transition-all duration-500 ${inputMode === 'csv' ? 'grid grid-cols-1 xl:grid-cols-2 gap-8' : ''}`}>
+          {inputMode === 'csv' && (
+            <>
+              {/* Step 2: Product Upload & Selection */}
+              <div id="step-upload-data" className="border border-default rounded-lg p-6">
+                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                  <button 
+                    onClick={() => handleStepClick('step-upload-data')}
+                    className="w-6 h-6 bg-abc-blue-secondary text-white rounded-full flex items-center justify-center text-sm hover:bg-abc-blue-light transition-colors cursor-pointer"
+                  >
+                    2
+                  </button>
+                  Upload & Select Product
+                </h2>
+                <div className="mb-4 p-3 rounded-lg border-l-4 border-abc-blue-secondary">
+                  <p className="text-sm text-gray-300">
+                    <strong>💡 Tip:</strong> After uploading your Shopify CSV, select a product to see its pricing analysis on the right.
+                  </p>
                 </div>
-              </section>
-            )}
-            
-            <section>
-              <h2 className="text-2xl font-semibold mb-4">Result Chart</h2>
-              <div className="border border-gray-200 rounded p-4 bg-gray-50">
-                {(inputMode === 'manual' || isProductSelected) ? (
+                <CsvUploader 
+                  onProductSelect={handleProductSelect} 
+                  shippingFee={shippingFee}
+                  transactionFeePercent={transactionFeePercent}
+                />
+              </div>
+
+              {/* Step 3: Live Analysis & Results */}
+              <div className={`border border-default rounded-lg p-6 ${isProductSelected ? 'border-abc-blue-secondary' : 'border-gray-600'}`}>
+                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                  <button 
+                    onClick={() => handleStepClick('step-analyze-results')}
+                    className={`w-6 h-6 rounded-full flex items-center justify-center text-sm transition-colors cursor-pointer ${
+                      isProductSelected 
+                        ? 'bg-abc-blue-secondary text-white hover:bg-abc-blue-light' 
+                        : 'bg-gray-600 text-gray-400 hover:bg-gray-500'
+                    }`}
+                  >
+                    3
+                  </button>
+                  Analysis Results
+                  {isProductSelected && selectedProduct && (
+                    <span className="ml-2 px-2 py-1 bg-abc-blue-secondary text-white text-xs rounded-full">
+                      {selectedProduct.title || 'Product Selected'}
+                    </span>
+                  )}
+                </h2>
+                
+                {!isProductSelected ? (
+                  <div className="h-[400px] flex items-center justify-center">
+                    <div className="text-center text-gray-400">
+                      <div className="text-4xl mb-4">👈</div>
+                      <p className="text-lg font-medium">Select a product from the left to see analysis</p>
+                      <p className="text-sm mt-2">The chart will update automatically with your product data</p>
+                    </div>
+                  </div>
+                ) : (
                   <ResultChart 
                     data={chartData} 
                     priceA={priceA} 
@@ -347,19 +307,140 @@ export default function Home() {
                     targetConversionRate={targetConversionRate}
                     setTargetConversionRate={setTargetConversionRate}
                   />
-                ) : (
-                  <div className="h-[400px] flex items-center justify-center text-gray-500">
-                    <div className="text-center">
-                      <div className="text-4xl mb-4">📊</div>
-                      <p className="text-lg font-medium">Upload CSV and select a product to see the analysis</p>
-                      <p className="text-sm mt-2">The chart will appear once you choose a product from your uploaded file</p>
-                    </div>
-                  </div>
                 )}
               </div>
-            </section>
-          </div>
+            </>
+          )}
+
+          {/* Manual Mode: Single column layout */}
+          {inputMode === 'manual' && (
+            <div id="step-upload-data" className="border border-default rounded-lg p-6">
+              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                <button 
+                  onClick={() => handleStepClick('step-upload-data')}
+                  className="w-6 h-6 bg-abc-blue-secondary text-white rounded-full flex items-center justify-center text-sm hover:bg-abc-blue-light transition-colors cursor-pointer"
+                >
+                  2
+                </button>
+                Configure Parameters
+              </h2>
+              <InputPanel
+                mu={mu}
+                setMu={handleMuChange}
+                sigma={sigma}
+                setSigma={setSigma}
+                cost={cost}
+                setCost={setCost}
+                cogs={cogs}
+                setCogs={setCogs}
+                shippingFee={shippingFee}
+                setShippingFee={setShippingFee}
+                transactionFeePercent={transactionFeePercent}
+                setTransactionFeePercent={setTransactionFeePercent}
+                traffic={traffic}
+                setTraffic={setTraffic}
+                minPrice={minPrice}
+                setMinPrice={setMinPrice}
+                maxPrice={maxPrice}
+                setMaxPrice={setMaxPrice}
+              />
+            </div>
+          )}
         </div>
+
+        {/* Advanced Settings (shown only when product is selected or in manual mode) */}
+        {(isProductSelected || inputMode === 'manual') && (
+          <div id="step-adjust-settings" className="border border-default rounded-lg p-6">
+            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+              <button 
+                onClick={() => handleStepClick('step-adjust-settings')}
+                className="w-6 h-6 bg-gray-600 text-white rounded-full flex items-center justify-center text-sm hover:bg-gray-500 transition-colors cursor-pointer"
+              >
+                ⚙️
+              </button>
+              Advanced Settings
+              <button 
+                onClick={() => setShowAdvanced(!showAdvanced)}
+                className="ml-auto text-sm text-abc-blue-secondary hover:text-abc-blue-light"
+              >
+                {showAdvanced ? 'Hide' : 'Show'} Settings
+              </button>
+            </h2>
+            
+            {showAdvanced && (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+                <label className="block">
+                  <span className="flex items-center gap-1 text-xs font-medium text-gray-300">
+                    Shipping Fee ($):
+                    <Tooltip content="Shipping cost charged to customers. Auto-adjusts based on product data." preferredPosition="right">
+                      <svg className="w-3 h-3 text-gray-400 hover:text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                      </svg>
+                    </Tooltip>
+                  </span>
+                  <input 
+                    type="number" 
+                    value={shippingFee} 
+                    onChange={(e) => setShippingFee(parseFloat(e.target.value) || 0)}
+                    className="form-input w-full mt-1 px-2 py-1 text-sm rounded"
+                    step="0.01"
+                    min="0"
+                  />
+                </label>
+                <label className="block">
+                  <span className="flex items-center gap-1 text-xs font-medium text-gray-300">
+                    Transaction Fee (%):
+                    <Tooltip content="Payment processing fee (2.9%-3.9%)">
+                      <svg className="w-3 h-3 text-gray-400 hover:text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                      </svg>
+                    </Tooltip>
+                  </span>
+                  <input 
+                    type="number" 
+                    value={transactionFeePercent} 
+                    onChange={(e) => setTransactionFeePercent(parseFloat(e.target.value) || 0)}
+                    className="form-input w-full mt-1 px-2 py-1 text-sm rounded"
+                    step="0.1"
+                    min="0"
+                    max="100"
+                  />
+                </label>
+                {inputMode === 'csv' && (
+                  <>
+                    <label className="block">
+                      <span className="flex items-center gap-1 text-xs font-medium text-gray-300">
+                        Traffic:
+                      </span>
+                      <input 
+                        type="number" 
+                        value={sellingTraffic} 
+                        onChange={(e) => setSellingTraffic(parseFloat(e.target.value) || 0)}
+                        className="form-input w-full mt-1 px-2 py-1 text-sm rounded"
+                        step="1"
+                        min="1"
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="flex items-center gap-1 text-xs font-medium text-gray-300">
+                        Conversion Rate (%):
+                      </span>
+                      <input 
+                        type="number" 
+                        value={conversionRate} 
+                        onChange={(e) => setConversionRate(parseFloat(e.target.value) || 0)}
+                        className="form-input w-full mt-1 px-2 py-1 text-sm rounded"
+                        step="0.01"
+                        min="0"
+                        max="100"
+                      />
+                    </label>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Analysis section: Comparison Table and Optimal Price side by side */}
         {(inputMode === 'manual' || isProductSelected) && (
@@ -367,7 +448,7 @@ export default function Home() {
             {/* Comparison Table section */}
             <section className="flex flex-col">
               <h2 className="text-2xl font-semibold mb-4">Price Comparison Analysis</h2>
-              <div className="border border-gray-200 rounded p-4 bg-gray-50 flex-1">
+              <div id="step-analyze-results" className="border border-default rounded p-4 flex-1">
                 <ComparisonTable 
                   priceA={comparisonData.priceA} 
                   priceB={comparisonData.priceB} 

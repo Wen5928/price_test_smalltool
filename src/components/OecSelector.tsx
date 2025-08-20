@@ -19,8 +19,8 @@ export default function OecSelector({ oec, setOec, targetConversionRate, setTarg
         {
           duration: 7000,
           style: {
-            background: '#3b82f6',
-            color: 'white',
+            background: 'var(--color-info)',
+            color: 'var(--abc-pure-white)',
           }
         }
       );
@@ -28,7 +28,7 @@ export default function OecSelector({ oec, setOec, targetConversionRate, setTarg
   };
   return (
     <div className="space-y-2">
-      <h3 className="font-semibold flex items-center gap-2">
+      <h3 className="font-semibold flex items-center gap-2 text-black">
         <span>📊</span>
         <span>Evaluation Focus:</span>
       </h3>
@@ -42,7 +42,7 @@ export default function OecSelector({ oec, setOec, targetConversionRate, setTarg
             onChange={(e) => handleOecChange(e.target.value as OECType)}
             className="w-4 h-4"
           />
-          <span>Maximize Revenue</span>
+          <span className="text-black">Maximize Revenue</span>
         </label>
         <label className="flex items-center gap-2 cursor-pointer">
           <input
@@ -53,7 +53,7 @@ export default function OecSelector({ oec, setOec, targetConversionRate, setTarg
             onChange={(e) => handleOecChange(e.target.value as OECType)}
             className="w-4 h-4"
           />
-          <span>Maximize Profit</span>
+          <span className="text-black">Maximize Profit</span>
         </label>
         <div className="space-y-2">
           <label className="flex items-center gap-2 cursor-pointer">
@@ -65,11 +65,11 @@ export default function OecSelector({ oec, setOec, targetConversionRate, setTarg
               onChange={(e) => handleOecChange(e.target.value as OECType)}
               className="w-4 h-4"
             />
-            <span>Maximize Conversion Rate</span>
+            <span className="text-black">Maximize Conversion Rate</span>
           </label>
           {oec === 'conversion' && setTargetConversionRate && (
             <div className="ml-6 flex items-center gap-2">
-              <label className="text-sm text-gray-600">Target Rate:</label>
+              <label className="text-sm text-[var(--color-text-secondary)]">Target Rate:</label>
               <input
                 type="number"
                 value={targetConversionRate || ''}

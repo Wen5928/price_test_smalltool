@@ -15,49 +15,50 @@ export default function HelpManual() {
       <div
         className={`w-12 h-12 rounded-full flex items-center justify-center cursor-pointer shadow-lg transition-all duration-200 hover:scale-110 ${
           isVisible 
-            ? 'bg-red-600 hover:bg-red-700' 
-            : 'bg-blue-600 hover:bg-blue-700'
+            ? 'bg-[var(--color-error)] hover:bg-[var(--color-error-dark)]' 
+            : 'bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)]'
         }`}
         onClick={toggleHelp}
         title={isVisible ? "Close Help" : "Open Manual"}
       >
-        <span className="text-white text-xl font-bold">
+        <span className="text-[var(--abc-pure-white)] text-xl font-bold">
           {isVisible ? '×' : '?'}
         </span>
       </div>
 
       {/* Help Panel */}
       {isVisible && (
-        <div className="absolute bottom-16 right-0 w-96 bg-white border border-gray-200 rounded-lg shadow-xl max-h-96 overflow-y-auto">
+        <div className="absolute bottom-16 right-0 w-96 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg shadow-xl max-h-96 overflow-y-auto">
           <div className="p-4">
-            <div className="flex items-center gap-2 mb-4 border-b border-gray-200 pb-2">
-              <span className="text-blue-600 text-lg">📚</span>
-              <h3 className="text-lg font-semibold text-gray-800">User Manual</h3>
+            <div className="flex items-center gap-2 mb-4 border-b border-[var(--color-border)] pb-2">
+              <span className="text-[var(--color-primary)] text-lg">📚</span>
+              <h3 className="text-lg font-semibold text-[var(--foreground)]">User Manual</h3>
             </div>
 
-            <div className="space-y-4 text-sm text-gray-700">
+            <div className="space-y-4 text-sm text-[var(--color-text-secondary)]">
               {/* Quick Start */}
               <section>
-                <h4 className="font-semibold text-blue-600 mb-2 flex items-center gap-1">
+                <h4 className="font-semibold text-[var(--color-primary)] mb-2 flex items-center gap-1">
                   🚀 Quick Start
                 </h4>
                 <ul className="space-y-1 pl-4">
-                  <li>• Choose "Upload CSV" or "Manual Input" mode</li>
-                  <li>• CSV mode: Upload Shopify file → Filter products → Click to select</li>
-                  <li>• Manual mode: Enter product parameters directly</li>
-                  <li>• Adjust configuration settings (shipping, transaction fee, etc.)</li>
-                  <li>• View charts and selected product cards for analysis</li>
+                  <li>• Export your products from Shopify Admin as CSV</li>
+                  <li>• Upload the Shopify CSV file → Filter products → Select product</li>
+                  <li>• Adjust Shopify-specific settings (shipping, transaction fee, etc.)</li>
+                  <li>• Analyze optimal pricing for your Shopify store</li>
+                  <li>• Manual mode available for testing scenarios</li>
                 </ul>
               </section>
 
               {/* CSV Upload */}
               <section>
-                <h4 className="font-semibold text-green-600 mb-2 flex items-center gap-1">
+                <h4 className="font-semibold text-[var(--color-secondary)] mb-2 flex items-center gap-1">
                   📁 CSV Upload
                 </h4>
                 <ul className="space-y-1 pl-4">
-                  <li>• Supports Shopify product CSV format (with variants)</li>
-                  <li>• Required fields: Handle, Title, Variant Price, Cost per item</li>
+                  <li>• <strong>Only supports Shopify product CSV exports</strong></li>
+                  <li>• Export from: Shopify Admin → Products → Export products</li>
+                  <li>• Required Shopify fields: Handle, Title, Variant Price, Cost per item</li>
                   <li>• Drag and drop or click to upload</li>
                   <li>• Shows 3 products per row, loads 40 by default</li>
                   <li>• Supports searching by product name, vendor, variant</li>
@@ -68,7 +69,7 @@ export default function HelpManual() {
 
               {/* Product Filtering */}
               <section>
-                <h4 className="font-semibold text-teal-600 mb-2 flex items-center gap-1">
+                <h4 className="font-semibold text-[var(--abc-blue-03)] mb-2 flex items-center gap-1">
                   🔍 Product Filtering
                 </h4>
                 <ul className="space-y-1 pl-4">
@@ -82,7 +83,7 @@ export default function HelpManual() {
 
               {/* Understanding Metrics */}
               <section>
-                <h4 className="font-semibold text-purple-600 mb-2 flex items-center gap-1">
+                <h4 className="font-semibold text-[var(--abc-blue-02)] mb-2 flex items-center gap-1">
                   📊 Metrics Explained
                 </h4>
                 <ul className="space-y-1 pl-4">
@@ -96,7 +97,7 @@ export default function HelpManual() {
 
               {/* Chart Features */}
               <section>
-                <h4 className="font-semibold text-orange-600 mb-2 flex items-center gap-1">
+                <h4 className="font-semibold text-[var(--color-accent)] mb-2 flex items-center gap-1">
                   📈 Chart Features
                 </h4>
                 <ul className="space-y-1 pl-4">
@@ -111,7 +112,7 @@ export default function HelpManual() {
 
               {/* Analysis Types */}
               <section>
-                <h4 className="font-semibold text-indigo-600 mb-2 flex items-center gap-1">
+                <h4 className="font-semibold text-[var(--abc-blue-01)] mb-2 flex items-center gap-1">
                   🎯 Analysis Modes
                 </h4>
                 <ul className="space-y-1 pl-4">
@@ -123,7 +124,7 @@ export default function HelpManual() {
 
               {/* Configuration */}
               <section>
-                <h4 className="font-semibold text-red-600 mb-2 flex items-center gap-1">
+                <h4 className="font-semibold text-[var(--color-error)] mb-2 flex items-center gap-1">
                   ⚙️ Parameter Settings
                 </h4>
                 <ul className="space-y-1 pl-4">
@@ -138,8 +139,8 @@ export default function HelpManual() {
               
             </div>
 
-            <div className="mt-4 pt-3 border-t border-gray-200 text-center">
-              <p className="text-xs text-gray-500">
+            <div className="mt-4 pt-3 border-t border-[var(--color-border)] text-center">
+              <p className="text-xs text-[var(--color-text-muted)]">
                 Click the × button in the bottom right to close the manual
               </p>
             </div>

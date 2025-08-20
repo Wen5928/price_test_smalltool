@@ -16,12 +16,17 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "A/B Price Testing Tool - Optimize Your Pricing Strategy",
-  description: "Professional A/B price testing calculator to compare conversion rates, revenue, and profit between different price points. Make data-driven pricing decisions.",
-  keywords: "A/B testing, price optimization, conversion rate calculator, pricing strategy, revenue calculator, profit analysis",
+  title: "Shopify A/B Price Testing Tool - CSV Data Analysis for Store Optimization",
+  description: "Professional Shopify-specific A/B price testing tool. Upload your Shopify product CSV exports to analyze optimal pricing strategies, compare conversion rates, revenue, and profit across different price points. Designed exclusively for Shopify merchants.",
+  keywords: "Shopify pricing, A/B testing, Shopify CSV analysis, price optimization, Shopify store optimization, conversion rate calculator, Shopify merchants, pricing strategy",
   authors: [{ name: "ABConvert" }],
   creator: "ABConvert",
   publisher: "ABConvert",
+  icons: {
+    icon: '/company_icon.png',
+    shortcut: '/company_icon.png',
+    apple: '/company_icon.png',
+  },
   robots: {
     index: true,
     follow: true,
@@ -34,25 +39,25 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "A/B Price Testing Tool - Optimize Your Pricing Strategy",
-    description: "Professional A/B price testing calculator to compare conversion rates, revenue, and profit between different price points.",
+    title: "Shopify A/B Price Testing Tool - CSV Data Analysis for Store Optimization",
+    description: "Professional Shopify-specific A/B price testing tool. Upload your Shopify product CSV exports to analyze optimal pricing strategies. Designed exclusively for Shopify merchants.",
     type: "website",
     locale: "en_US",
     url: "https://yourwebsite.com",
-    siteName: "A/B Price Testing Tool",
+    siteName: "Shopify A/B Price Testing Tool",
     images: [
       {
         url: "https://yourwebsite.com/og-image.png",
         width: 1200,
         height: 630,
-        alt: "A/B Price Testing Tool",
+        alt: "Shopify A/B Price Testing Tool for CSV Analysis",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "A/B Price Testing Tool - Optimize Your Pricing Strategy",
-    description: "Professional A/B price testing calculator to compare conversion rates, revenue, and profit between different price points.",
+    title: "Shopify A/B Price Testing Tool - CSV Data Analysis for Store Optimization",
+    description: "Professional Shopify-specific A/B price testing tool. Upload your Shopify product CSV exports to analyze optimal pricing strategies. Designed exclusively for Shopify merchants.",
     images: ["https://yourwebsite.com/twitter-image.png"],
   },
   verification: {
@@ -80,23 +85,24 @@ export default function RootLayout({
             duration: 4000,
             removeDelay: 200, // Faster removal animation
             style: {
-              background: '#363636',
-              color: '#fff',
+              background: 'var(--color-surface)',
+              color: 'var(--foreground)',
+              border: '1px solid var(--color-border)',
             },
             success: {
               duration: 3000,
               removeDelay: 150, // Even faster for success messages
               iconTheme: {
-                primary: '#10b981',
-                secondary: '#fff',
+                primary: 'var(--color-success)',
+                secondary: 'var(--foreground)',
               },
             },
             error: {
               duration: 5000,
               removeDelay: 200,
               iconTheme: {
-                primary: '#ef4444',
-                secondary: '#fff',
+                primary: 'var(--color-error)',
+                secondary: 'var(--foreground)',
               },
             },
           }}

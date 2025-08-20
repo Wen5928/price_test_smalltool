@@ -1,19 +1,184 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* ABC Color Palette */
+  /* Neutrals */
+  --abc-pure-black: #000000;
+  --abc-dark-gray: #3C3C3C;
+  --abc-medium-gray: #4E4E4E;
+  --abc-pure-white: #FFFFFF;
+
+  /* Simplified Blue Palette - Main Colors Only */
+  --abc-blue-primary: #2E8BC7;    /* Primary blue for main actions */
+  --abc-blue-secondary: #4A9FE7;  /* Secondary blue for highlights */
+  --abc-blue-light: #6BB3F0;      /* Light blue for accents */
+
+  /* Supporting Colors - Minimal Set */
+  --abc-success: #82C621;    /* Green for success states */
+  --abc-warning: #FF8690;    /* Coral for warnings/errors */
+
+  /* ABC Dark Theme (Primary) - Pure Black Background */
+  --background: var(--abc-pure-black);
+  --foreground: var(--abc-pure-white);
+
+  /* Simplified Semantic Colors */
+  /* Primary: Main blue for primary actions and focus states */
+  --color-primary: var(--abc-blue-primary);
+  --color-primary-hover: var(--abc-blue-secondary);
+  --color-primary-light: var(--abc-blue-light);
+  
+  /* Secondary: Success and Warning Colors */
+  --color-success: var(--abc-success);
+  --color-warning: var(--abc-warning);
+  
+  /* Background Colors */
+  --color-background-primary: var(--abc-pure-black);
+  --color-background-secondary: var(--abc-pure-black);
+  --color-surface: var(--abc-dark-gray);
+  --color-surface-hover: rgba(255, 255, 255, 0.05);
+  --color-card: var(--abc-dark-gray);
+  
+  /* Text Colors with proper opacity levels */
+  --color-text: var(--abc-pure-white);
+  --color-text-secondary: rgba(255, 255, 255, 0.8);
+  --color-text-muted: rgba(255, 255, 255, 0.6);
+  --color-text-disabled: rgba(255, 255, 255, 0.4);
+  
+  /* Border Colors */
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-border-hover: rgba(255, 255, 255, 0.2);
+  --color-border-focus: var(--color-primary);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Haffer", Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s ease, color 0.2s ease;
 }
+
+/* ABC Color Utility Classes */
+
+/* Text Colors */
+.text-abc-pure-black { color: var(--abc-pure-black); }
+.text-abc-dark-gray { color: var(--abc-dark-gray); }
+.text-abc-medium-gray { color: var(--abc-medium-gray); }
+.text-abc-pure-white { color: var(--abc-pure-white); }
+
+.text-abc-blue-01 { color: var(--abc-blue-01); }
+.text-abc-blue-02 { color: var(--abc-blue-02); }
+.text-abc-blue-03 { color: var(--abc-blue-03); }
+.text-abc-blue-04 { color: var(--abc-blue-04); }
+
+.text-abc-green-01 { color: var(--abc-green-01); }
+.text-abc-green-02 { color: var(--abc-green-02); }
+.text-abc-green-03 { color: var(--abc-green-03); }
+.text-abc-green-04 { color: var(--abc-green-04); }
+
+.text-abc-coral-01 { color: var(--abc-coral-01); }
+.text-abc-coral-02 { color: var(--abc-coral-02); }
+.text-abc-coral-03 { color: var(--abc-coral-03); }
+.text-abc-coral-04 { color: var(--abc-coral-04); }
+
+/* Background Colors */
+.bg-abc-pure-black { background-color: var(--abc-pure-black); }
+.bg-abc-dark-gray { background-color: var(--abc-dark-gray); }
+.bg-abc-medium-gray { background-color: var(--abc-medium-gray); }
+.bg-abc-pure-white { background-color: var(--abc-pure-white); }
+
+.bg-abc-blue-01 { background-color: var(--abc-blue-01); }
+.bg-abc-blue-02 { background-color: var(--abc-blue-02); }
+.bg-abc-blue-03 { background-color: var(--abc-blue-03); }
+.bg-abc-blue-04 { background-color: var(--abc-blue-04); }
+
+.bg-abc-green-01 { background-color: var(--abc-green-01); }
+.bg-abc-green-02 { background-color: var(--abc-green-02); }
+.bg-abc-green-03 { background-color: var(--abc-green-03); }
+.bg-abc-green-04 { background-color: var(--abc-green-04); }
+
+.bg-abc-coral-01 { background-color: var(--abc-coral-01); }
+.bg-abc-coral-02 { background-color: var(--abc-coral-02); }
+.bg-abc-coral-03 { background-color: var(--abc-coral-03); }
+.bg-abc-coral-04 { background-color: var(--abc-coral-04); }
+
+/* Border Colors */
+.border-abc-pure-black { border-color: var(--abc-pure-black); }
+.border-abc-dark-gray { border-color: var(--abc-dark-gray); }
+.border-abc-medium-gray { border-color: var(--abc-medium-gray); }
+.border-abc-pure-white { border-color: var(--abc-pure-white); }
+
+.border-abc-blue-01 { border-color: var(--abc-blue-01); }
+.border-abc-blue-02 { border-color: var(--abc-blue-02); }
+.border-abc-blue-03 { border-color: var(--abc-blue-03); }
+.border-abc-blue-04 { border-color: var(--abc-blue-04); }
+
+.border-abc-green-01 { border-color: var(--abc-green-01); }
+.border-abc-green-02 { border-color: var(--abc-green-02); }
+.border-abc-green-03 { border-color: var(--abc-green-03); }
+.border-abc-green-04 { border-color: var(--abc-green-04); }
+
+.border-abc-coral-01 { border-color: var(--abc-coral-01); }
+.border-abc-coral-02 { border-color: var(--abc-coral-02); }
+.border-abc-coral-03 { border-color: var(--abc-coral-03); }
+.border-abc-coral-04 { border-color: var(--abc-coral-04); }
+
+/* ABC Semantic Utility Classes */
+
+/* Text Colors */
+.text-primary { color: var(--color-primary); }
+.text-secondary { color: var(--color-secondary); }
+.text-accent { color: var(--color-accent); }
+.text-muted { color: var(--color-text-muted); }
+.text-disabled { color: var(--color-text-disabled); }
+.text-foreground { color: var(--foreground); }
+
+/* Background Colors */
+.bg-primary { background-color: var(--color-primary); }
+.bg-secondary { background-color: var(--color-secondary); }
+.bg-accent { background-color: var(--color-accent); }
+.bg-surface { background-color: var(--color-surface); }
+.bg-surface-hover { background-color: var(--color-surface-hover); }
+.bg-card { background-color: var(--color-card); }
+.bg-background { background-color: var(--background); }
+
+/* Border Colors */
+.border-primary { border-color: var(--color-primary); }
+.border-secondary { border-color: var(--color-secondary); }
+.border-accent { border-color: var(--color-accent); }
+.border-default { border-color: var(--color-border); }
+
+/* Interactive States - Following ABC Design Principles */
+.btn-primary {
+  background-color: var(--color-primary);
+  color: var(--abc-pure-white);
+  transition: all 0.15s ease;
+}
+.btn-primary:hover {
+  background-color: var(--color-primary-hover);
+}
+.btn-primary:active {
+  background-color: var(--color-primary);
+  transform: scale(0.98);
+}
+.btn-primary:focus {
+  outline: 2px solid var(--color-primary-light);
+  outline-offset: 2px;
+}
+
+/* Form Elements */
+.form-input {
+  background-color: var(--abc-dark-gray);
+  border: 1px solid var(--color-border);
+  color: var(--abc-pure-white);
+  transition: border-color 0.15s ease;
+}
+.form-input:focus {
+  border-color: var(--color-primary);
+  outline: none;
+  box-shadow: 0 0 0 1px var(--color-primary);
+}
+.form-input:hover {
+  border-color: var(--color-border-hover);
+}
+

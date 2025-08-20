@@ -50,13 +50,13 @@ export default function ComparisonBarChart({ comparisonData }: ComparisonBarChar
           <Legend />
           <Bar 
             dataKey="Price A" 
-            fill="#3b82f6" 
+            fill="var(--abc-blue-01)" 
             name={`Price A ($${priceA.price})`}
             radius={[0, 4, 4, 0]}
           />
           <Bar 
             dataKey="Price B" 
-            fill="#10b981" 
+            fill="var(--abc-green-02)" 
             name={`Price B ($${priceB.price})`}
             radius={[0, 4, 4, 0]}
           />

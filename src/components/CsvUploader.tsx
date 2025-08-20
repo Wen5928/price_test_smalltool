@@ -148,54 +148,10 @@ export default function CsvUploader({
             if (firstVariant.price > 2000000) {
               // Use setTimeout to ensure the toast appears after the success message
               setTimeout(() => {
-                const shouldRemove = window.confirm(
-                  `⚠️ Warning: The automatically selected product has an extremely high price ($${firstVariant.price.toLocaleString()}).\n\n` +
-                  `Price elasticity calculations may be inaccurate at this price level.\n\n` +
-                  `Would you like to remove this product and select another?\n\n` +
-                  `Click "OK" to remove it, or "Cancel" to keep it with reduced accuracy.`
+                toast.error(
+                  `⚠️ Warning: Extremely high price ($${firstVariant.price.toLocaleString()}). Price elasticity calculations may be inaccurate at this price level.`,
+                  { duration: 8000 }
                 );
-
-                if (shouldRemove) {
-                  // Remove the first variant from the list
-                  const filteredVariants = parsedVariants.filter(v => 
-                    !(v.handle === firstVariant.handle && v.variantOption === firstVariant.variantOption)
-                  );
-                  setVariants(filteredVariants);
-                  
-                  if (filteredVariants.length > 0) {
-                    // Auto-select the new first product
-                    const newFirstVariant = filteredVariants[0];
-                    const newFirstVariantId = `${newFirstVariant.handle}-${newFirstVariant.variantOption}`;
-                    setSelectedVariant(newFirstVariantId);
-                    
-                    const newProductData: ProductData = {
-                      handle: newFirstVariant.handle,
-                      title: `${newFirstVariant.title} - ${newFirstVariant.variantOption}`,
-                      price: newFirstVariant.price,
-                      costPerItem: newFirstVariant.costPerItem,
-                      requiresShipping: newFirstVariant.requiresShipping
-                    };
-                    
-                    onProductSelect(newProductData, newFirstVariant);
-                    toast.success(`Removed extreme price product. Selected: ${newFirstVariant.title}`, { duration: 4000 });
-                  } else {
-                    // No products remaining
-                    setSelectedVariant('');
-                    toast.error('No products remaining after removing extreme price item');
-                  }
-                } else {
-                  // User chose to keep the extreme price product
-                  toast(
-                    `⚠️ Keeping product with extreme price. Analysis accuracy may be reduced.`, 
-                    { 
-                      duration: 4000,
-                      style: {
-                        background: '#f59e0b',
-                        color: 'white',
-                      }
-                    }
-                  );
-                }
               }, 500); // Small delay to let the success message show first
               
               toast.success(`Selected: ${firstVariant.title}`, { duration: 2000 });
@@ -266,62 +222,13 @@ export default function CsvUploader({
     
     // Check if selected product has extremely high price and warn user
     if (variant.price > 2000000) {
-      const shouldRemove = window.confirm(
-        `⚠️ Warning: This product has an extremely high price ($${variant.price.toLocaleString()}).\n\n` +
-        `Price elasticity calculations may be inaccurate at this price level.\n\n` +
-        `Would you like to remove this product from the analysis?\n\n` +
-        `Click "OK" to remove it, or "Cancel" to keep it with reduced accuracy.`
+      toast.error(
+        `⚠️ Warning: Extremely high price ($${variant.price.toLocaleString()}). Price elasticity calculations may be inaccurate at this price level.`,
+        { duration: 8000 }
       );
-
-      if (shouldRemove) {
-        // Remove this variant from the list
-        const filteredVariants = variants.filter(v => 
-          !(v.handle === variant.handle && v.variantOption === variant.variantOption)
-        );
-        setVariants(filteredVariants);
-        
-        // Clear selection since we're removing this product
-        setSelectedVariant('');
-        
-        toast.success(
-          `Removed "${variant.title}" due to extreme price. ${filteredVariants.length} products remaining.`,
-          { duration: 4000 }
-        );
-
-        // If there are still products, auto-select the first one
-        if (filteredVariants.length > 0) {
-          const newFirstVariant = filteredVariants[0];
-          const newFirstVariantId = `${newFirstVariant.handle}-${newFirstVariant.variantOption}`;
-          setSelectedVariant(newFirstVariantId);
-          
-          const newProductData: ProductData = {
-            handle: newFirstVariant.handle,
-            title: `${newFirstVariant.title} - ${newFirstVariant.variantOption}`,
-            price: newFirstVariant.price,
-            costPerItem: newFirstVariant.costPerItem,
-            requiresShipping: newFirstVariant.requiresShipping
-          };
-          
-          onProductSelect(newProductData, newFirstVariant);
-          toast.success(`Auto-selected: ${newFirstVariant.title}`, { duration: 2000 });
-        }
-      } else {
-        // User chose to keep the extreme price product
-        toast(
-          `⚠️ Keeping product with extreme price. Analysis accuracy may be reduced.`, 
-          { 
-            duration: 4000,
-            style: {
-              background: '#f59e0b',
-              color: 'white',
-            }
-          }
-        );
-        toast.success(`Selected: ${variant.title}`, { duration: 2000 });
-      }
-    } else {
-      toast.success(`Selected: ${variant.title}`, { duration: 2000 });
     }
+    
+    toast.success(`Selected: ${variant.title}`, { duration: 2000 });
   };
 
   // Filter and search logic
@@ -365,7 +272,7 @@ export default function CsvUploader({
                 <path d="M28 8H12a4 4 0 00-4 4v20m0 0v4a4 4 0 004 4h24a4 4 0 004-4V24m-32 8l10.5-10.5a1.5 1.5 0 012.12 0L24 29m16-13v12m0 0l-3-3m3 3l3-3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
-            <p className="text-sm text-gray-600">
+            <p className="text-base font-medium text-gray-200">
               Click to upload or drag and drop your Shopify product CSV file
             </p>
           </div>
@@ -483,7 +390,7 @@ export default function CsvUploader({
             </div>
           </div>
 
-          <div className="border rounded-lg bg-white">
+          <div className="border rounded-lg">
             {/* Vertical scrolling product display */}
             <div className="max-h-[600px] overflow-y-auto p-4">
               {filteredVariants.length === 0 ? (
@@ -524,7 +431,9 @@ export default function CsvUploader({
                         {/* Product title and status */}
                         <div className="flex justify-between items-start mb-3">
                           <div className="flex-1 min-w-0">
-                            <h4 className="font-medium text-sm text-gray-900 truncate">
+                            <h4 className={`font-medium text-sm truncate ${
+                              selectedVariant === variantId ? 'text-gray-900' : 'text-white'
+                            }`}>
                               {variant.title}
                             </h4>
                             {variant.variantOption !== 'Default Title' && (
@@ -549,7 +458,9 @@ export default function CsvUploader({
                         {/* Price information */}
                         <div className="space-y-2 mb-3">
                           <div className="flex justify-between items-center">
-                            <span className="text-lg font-bold text-gray-900">
+                            <span className={`text-lg font-bold ${
+                              selectedVariant === variantId ? 'text-gray-900' : 'text-white'
+                            }`}>
                               ${variant.price.toFixed(2)}
                             </span>
                             {variant.compareAtPrice && variant.compareAtPrice > variant.price && (

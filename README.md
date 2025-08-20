@@ -1,20 +1,20 @@
-# 📊 Price Test Easy Tool
+# 📊 Shopify A/B Price Testing Tool
 
-> An interactive pricing simulation tool that helps e-commerce merchants understand the impact of price changes on conversion rates, revenue, and profit.
+> Professional pricing analysis tool designed exclusively for Shopify merchants. Upload your Shopify product CSV exports to analyze optimal pricing strategies through data-driven simulation.
 
 
 
 ## 🎯 What is this?
 
-The **Price Test Easy Tool** is an educational simulation platform designed to help Shopify merchants and e-commerce business owners visualize how pricing changes affect their bottom line. It uses price elasticity modeling to predict customer behavior and demonstrates the value of systematic A/B testing.
+The **Shopify A/B Price Testing Tool** is a specialized pricing analysis platform designed exclusively for Shopify merchants. It uses your actual Shopify product data to simulate pricing scenarios and provides data-driven recommendations for optimal pricing strategies.
 
 🌐 **[Try the live demo](https://price-test-smalltool.vercel.app/)**
 
 ## ✨ Key Features
 
-### 🔄 Dual Input Modes
-- **Manual Input**: Quick theoretical analysis with customizable parameters
-- **CSV Upload**: Upload Shopify product exports for real-world analysis
+### 🔄 Shopify-Focused Input Modes
+- **CSV Upload (Primary)**: Upload Shopify product CSV exports for real-world analysis
+- **Manual Input (Testing)**: Quick theoretical analysis for testing scenarios
 
 ### 📊 Advanced Analytics
 - **Price Elasticity Modeling**: Uses actual conversion rates as baseline
@@ -23,10 +23,11 @@ The **Price Test Easy Tool** is an educational simulation platform designed to h
 - **Interactive Visualizations**: Real-time charts and comparison tables
 
 ### 🎨 Professional UX
+- **Step-by-Step Guidance**: Clear workflow with progress indicators
 - **Responsive Design**: Works seamlessly on mobile and desktop
-- **Interactive Sliders**: Real-time price adjustment with visual feedback
-- **Clean Interface**: Professional styling with intuitive navigation
-- **Educational Content**: Built-in explanations of A/B testing value
+- **Interactive Analysis**: Real-time price adjustment with visual feedback
+- **Clean Interface**: Pure black background with simplified color scheme
+- **Shopify Integration**: Built specifically for Shopify CSV format
 
 ## 🚀 Quick Start
 
