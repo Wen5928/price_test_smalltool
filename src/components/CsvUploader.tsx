@@ -56,6 +56,79 @@ export default function CsvUploader({
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [filterVendor, setFilterVendor] = useState<string>('all');
 
+  // Load CSV from sessionStorage if available
+  React.useEffect(() => {
+    const csvContent = sessionStorage.getItem('csvContent');
+    const fileName = sessionStorage.getItem('fileName');
+    
+    if (csvContent && fileName) {
+      // Parse the CSV content
+      setIsLoading(true);
+      console.log('Loading CSV from sessionStorage:', fileName);
+      
+      Papa.parse(csvContent, {
+        header: true,
+        complete: (results) => {
+          try {
+            const parsedVariants: ProductVariant[] = [];
+            
+            results.data.forEach((row: any, rowIndex: number) => {
+              const price = parseFloat(row['Variant Price']) || 0;
+              const costPerItem = parseFloat(row['Cost per item']) || 0;
+              
+              if (row['Handle'] && row['Variant Price'] && price > 0) {
+                const variant: ProductVariant = {
+                  handle: row['Handle'] || '',
+                  title: row['Title'] || row['Handle'],
+                  variantOption: row['Option1 Value'] || 'Default Title',
+                  price: price,
+                  compareAtPrice: row['Variant Compare At Price'] ? parseFloat(row['Variant Compare At Price']) : undefined,
+                  costPerItem: costPerItem,
+                  requiresShipping: row['Variant Requires Shipping'] === 'true',
+                  vendor: row['Vendor'] || '',
+                  category: row['Product Category'] || 'Uncategorized',
+                  sku: row['Variant SKU'] || undefined,
+                  status: row['Status'] || 'unknown',
+                  uniqueId: `${row['Handle']}-${row['Option1 Value'] || 'default'}-${rowIndex}`,
+                  weight: row['Variant Grams'] ? parseFloat(row['Variant Grams']) : undefined,
+                  tags: row['Tags'] || undefined,
+                  type: row['Type'] || undefined,
+                  grams: row['Variant Grams'] ? parseFloat(row['Variant Grams']) : undefined,
+                  taxable: row['Variant Taxable'] === 'true',
+                  tariff: row['tariff (product.metafields.custom.tariff)'] === 'TRUE'
+                };
+                
+                parsedVariants.push(variant);
+              }
+            });
+
+            if (parsedVariants.length === 0) {
+              setError('No valid product variants found in CSV file');
+              toast.error('No valid products found in the CSV file');
+            } else {
+              setVariants(parsedVariants);
+              toast.success(`Loaded ${parsedVariants.length} products from ${fileName}`);
+            }
+          } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+            setError('Error parsing CSV file: ' + errorMessage);
+            toast.error('Failed to parse CSV: ' + errorMessage);
+          } finally {
+            setIsLoading(false);
+          }
+        },
+        error: (err: any) => {
+          const errorMessage = 'Error reading CSV file: ' + err.message;
+          setError(errorMessage);
+          toast.error(errorMessage);
+          setIsLoading(false);
+        }
+      });
+      
+      // Keep sessionStorage for cache purposes - only clear when leaving the app
+    }
+  }, []);
+
   const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;

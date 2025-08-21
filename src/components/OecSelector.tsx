@@ -28,7 +28,7 @@ export default function OecSelector({ oec, setOec, targetConversionRate, setTarg
   };
   return (
     <div className="space-y-2">
-      <h3 className="font-semibold flex items-center gap-2 text-black">
+      <h3 className="font-semibold flex items-center gap-2 text-white">
         <span>📊</span>
         <span>Evaluation Focus:</span>
       </h3>
@@ -42,7 +42,7 @@ export default function OecSelector({ oec, setOec, targetConversionRate, setTarg
             onChange={(e) => handleOecChange(e.target.value as OECType)}
             className="w-4 h-4"
           />
-          <span className="text-black">Maximize Revenue</span>
+          <span className="text-white">Maximize Revenue</span>
         </label>
         <label className="flex items-center gap-2 cursor-pointer">
           <input
@@ -53,7 +53,7 @@ export default function OecSelector({ oec, setOec, targetConversionRate, setTarg
             onChange={(e) => handleOecChange(e.target.value as OECType)}
             className="w-4 h-4"
           />
-          <span className="text-black">Maximize Profit</span>
+          <span className="text-white">Maximize Profit</span>
         </label>
         <div className="space-y-2">
           <label className="flex items-center gap-2 cursor-pointer">
@@ -65,7 +65,7 @@ export default function OecSelector({ oec, setOec, targetConversionRate, setTarg
               onChange={(e) => handleOecChange(e.target.value as OECType)}
               className="w-4 h-4"
             />
-            <span className="text-black">Maximize Conversion Rate</span>
+            <span className="text-white">Maximize Conversion Rate</span>
           </label>
           {oec === 'conversion' && setTargetConversionRate && (
             <div className="ml-6 flex items-center gap-2">
@@ -80,7 +80,7 @@ export default function OecSelector({ oec, setOec, targetConversionRate, setTarg
                 step="0.1"
                 className="w-20 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
               />
-              <span className="text-sm text-gray-500">%</span>
+              <span className="text-sm text-gray-400">%</span>
             </div>
           )}
         </div>

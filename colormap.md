@@ -1,43 +1,56 @@
-# 🎨 ABC Color System (Simplified)
+# 🎨 ABC Color Palette
 
-## Current Implementation
+## Neutral
+- **ABC Dark Gray**  
+  HEX: `#3C3C3C`
 
-The color system has been simplified to use only essential colors for better maintainability and visual consistency.
+- **ABC Medium Gray**  
+  HEX: `#4E4E4E`
 
-### Neutral Colors
-- **ABC Pure Black**: `#000000` (Background)
-- **ABC Dark Gray**: `#3C3C3C` (Surface elements)
-- **ABC Medium Gray**: `#4E4E4E` (Secondary surfaces)
-- **ABC Pure White**: `#FFFFFF` (Text, light elements)
+- **ABC Pure White**  
+  HEX: `#FFFFFF`
 
-### Primary Colors
-- **ABC Blue Primary**: `#2E8BC7` (Main actions, primary buttons)
-- **ABC Blue Secondary**: `#4A9FE7` (Highlights, secondary actions)
-- **ABC Blue Light**: `#6BB3F0` (Accents, light emphasis)
+---
 
-### Supporting Colors
-- **ABC Success**: `#82C621` (Success states, confirmations)
-- **ABC Warning**: `#FF8690` (Warnings, errors)
+## Blues
+- **ABC Blue 01**  
+  HEX: `#217BD1`
 
-## Usage Guidelines
+- **ABC Blue 02**  
+  HEX: `#3FB4E8`
 
-- **Primary Blue**: Use for main call-to-action buttons and important interactive elements
-- **Secondary Blue**: Use for highlights, step indicators, and secondary emphasis
-- **Light Blue**: Use for subtle accents and hover states
-- **Success Green**: Use only for success messages and positive feedback
-- **Warning Coral**: Use only for error states and critical warnings
-- **Neutrals**: Use for backgrounds, text, and structural elements
+- **ABC Blue 03**  
+  HEX: `#5DEFFF`
 
-## Color Combinations
+- **ABC Blue 04**  
+  HEX: `#A4F6FF`
 
-### Text on Backgrounds
-- White text on pure black background ✓
-- White text on blue backgrounds ✓
-- Dark gray text on white/light backgrounds ✓
+---
 
-### Interactive Elements
-- Primary buttons: Blue primary background with white text
-- Secondary buttons: Gray background with white text
-- Focus states: Blue secondary border/outline
+## Greens
+- **ABC Green 01**  
+  HEX: `#5A912B`
 
-This simplified palette ensures consistency while maintaining accessibility and visual hierarchy.
+- **ABC Green 02**  
+  HEX: `#82C621`
+
+- **ABC Green 03**  
+  HEX: `#ACFF17`
+
+- **ABC Green 04**  
+  HEX: `#D6FF8C`
+
+---
+
+## Corals
+- **ABC Coral 01**  
+  HEX: `#FF5F47`
+
+- **ABC Coral 02**  
+  HEX: `#FF8690`
+
+- **ABC Coral 03**  
+  HEX: `#FFABD6`
+
+- **ABC Coral 04**  
+  HEX: `#FFD4EA`

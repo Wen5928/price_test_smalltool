@@ -75,8 +75,8 @@ export default function ResultChart({
     };
 
     return (
-      <div className="mt-4 p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
-        <h4 className="text-md font-semibold mb-3 text-center text-gray-800">
+      <div className="mt-4 p-4 rounded-lg border border-white">
+        <h4 className="text-md font-semibold mb-3 text-center text-white">
           🎚️ Interactive Price Adjustment
         </h4>
         
@@ -119,7 +119,7 @@ export default function ResultChart({
         <div className="space-y-5">
           {/* Original Price slider */}
           <div className={`flex items-center space-x-3 mx-3 ${isCSVMode ? 'opacity-50' : ''}`}>
-            <label className="w-24 text-sm font-medium text-blue-700">Original Price:</label>
+            <label className="w-24 text-sm font-medium text-white">Original Price:</label>
             <div className="flex-1 relative">
               <input
                 type="range"
@@ -135,11 +135,11 @@ export default function ResultChart({
                 }}
               />
             </div>
-            <div className="w-14 px-2 py-1 text-xs font-semibold text-blue-700 bg-blue-50 rounded border text-center">
+            <div className="w-14 px-2 py-1 text-xs font-semibold text-blue-400 border border-blue-400 rounded text-center">
               ${priceA}
             </div>
             {isCSVMode && (
-              <div className="text-xs text-gray-500 ml-2">
+              <div className="text-xs text-gray-400 ml-2">
                 (Fixed)
               </div>
             )}
@@ -147,7 +147,7 @@ export default function ResultChart({
 
           {/* New Price slider */}
           <div className="flex items-center space-x-3 mx-3">
-            <label className="w-24 text-sm font-medium text-green-700">New Price:</label>
+            <label className="w-24 text-sm font-medium text-white">New Price:</label>
             <div className="flex-1 relative">
               <input
                 type="range"
@@ -162,20 +162,20 @@ export default function ResultChart({
                 }}
               />
             </div>
-            <div className="w-14 px-2 py-1 text-xs font-semibold text-green-700 bg-green-50 rounded border text-center">
+            <div className="w-14 px-2 py-1 text-xs font-semibold text-green-400 border border-green-400 rounded text-center">
               ${priceB}
             </div>
           </div>
         </div>
 
         {/* Range indicators */}
-        <div className="flex justify-between mt-3 mx-3 text-xs text-gray-500">
+        <div className="flex justify-between mt-3 mx-3 text-xs text-gray-400">
           <span>Min: ${minPrice}</span>
           <span>Max: ${maxPrice}</span>
         </div>
 
         {/* Evaluation Focus Selector */}
-        <div className="mt-6 pt-4 border-t border-gray-300">
+        <div className="mt-6 pt-4 border-t border-gray-600">
           <OecSelector 
             oec={oec} 
             setOec={setOec}

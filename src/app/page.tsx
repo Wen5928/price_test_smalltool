@@ -1,509 +1,159 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import InputPanel from '@/components/InputPanel';
-import ResultChart from '@/components/ResultChart';
-import ExplanationText from '@/components/ExplanationText';
-import ComparisonTable from '@/components/ComparisonTable';
-import CsvUploader, { ProductData } from '@/components/CsvUploader';
-import OptimalPriceConclusion from '@/components/OptimalPriceConclusion';
-import HelpManual from '@/components/HelpManual';
-import Tooltip from '@/components/Tooltip';
-import StepIndicator from '@/components/StepIndicator';
-// import ExportSummary from '@/components/ExportSummary';  // Currently not in use
-import { generateComparisonData, generateChartData, generateEnhancedChartData, OECType }  from '@/utils/math';
+import { useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 
 export default function Home() {
-  const [mu, setMu] = useState(30);
-  const [sigma, setSigma] = useState(10);
-  const [cost, setCost] = useState(20);
-  const [cogs, setCogs] = useState(0);
-  const [shippingFee, setShippingFee] = useState(0);
-  const [transactionFeePercent, setTransactionFeePercent] = useState(1.5);
-  const [traffic, setTraffic] = useState(1000);
-  const [minPrice, setMinPrice] = useState(Math.round(mu * 0.7));
-  const [maxPrice, setMaxPrice] = useState(Math.round(mu * 1.3));
-  const [priceA, setPriceA] = useState(25);
-  const [priceB, setPriceB] = useState(35);
-  const [inputMode, setInputMode] = useState<'manual' | 'csv'>('csv');
-  const [oec, setOec] = useState<OECType>('profit');
-  const [isProductSelected, setIsProductSelected] = useState(false);
-  const [gmv, setGmv] = useState(0);
-  const [sellingTraffic, setSellingTraffic] = useState(1000);
-  const [conversionRate, setConversionRate] = useState(50);
-  const [selectedProduct, setSelectedProduct] = useState<any>(null);
-  const [targetConversionRate, setTargetConversionRate] = useState<number>(3.0);
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  const router = useRouter();
+  const [showDemo, setShowDemo] = useState(false);
 
-  // Use sellingTraffic for CSV mode, traffic for manual mode
-  const effectiveTraffic = inputMode === 'csv' ? sellingTraffic : traffic;
-  const effectiveConversionRate = inputMode === 'csv' && isProductSelected ? conversionRate : undefined;
-  const effectiveGmv = inputMode === 'csv' && isProductSelected ? gmv : undefined;
-  
-  // In CSV mode, pass actual product price as originalPrice
-  const originalPrice = inputMode === 'csv' && isProductSelected ? priceA : undefined;
-  const chartData = generateChartData(mu, sigma, cost, effectiveTraffic, minPrice, maxPrice, cogs, shippingFee, transactionFeePercent, effectiveConversionRate, effectiveGmv, originalPrice);
-  const comparisonData = generateComparisonData(mu, sigma, cost, effectiveTraffic, minPrice, maxPrice, priceA, priceB, cogs, shippingFee, transactionFeePercent, effectiveConversionRate, effectiveGmv);
-  const enhancedData = generateEnhancedChartData(mu, sigma, cost, effectiveTraffic, minPrice, maxPrice, oec, cogs, shippingFee, transactionFeePercent, effectiveConversionRate, effectiveGmv, priceA, targetConversionRate);
+  const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-  // Adjust maxPrice if it's less than or equal to optimal price
-  useEffect(() => {
-    if (enhancedData.optimalPrice && maxPrice <= enhancedData.optimalPrice.price) {
-      setMaxPrice(Math.round(enhancedData.optimalPrice.price) + 1);
+    if (!file.name.endsWith('.csv')) {
+      toast.error('Please upload a CSV file');
+      return;
     }
-  }, [enhancedData.optimalPrice, maxPrice]);
 
-  const handleProductSelect = (product: ProductData, variant: any) => {
-    setCogs(product.costPerItem);
-    setSelectedProduct(variant);
+    // Store file in sessionStorage for the next page
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const csvContent = e.target?.result as string;
+      sessionStorage.setItem('csvContent', csvContent);
+      sessionStorage.setItem('fileName', file.name);
+      router.push('/analysis');
+    };
+    reader.readAsText(file);
+  }, [router]);
+
+  const handleManualUpload = () => {
+    sessionStorage.removeItem('csvContent');
+    sessionStorage.removeItem('fileName');
+    router.push('/analysis');
+  };
+
+  const handleDemo = () => {
+    setShowDemo(!showDemo);
+  };
+
+  const handleDemoData = () => {
+    // Load demo CSV data
+    const demoCSV = `Handle,Title,Option1 Value,Variant Price,Cost per item,Variant Requires Shipping,Vendor,Product Category,Variant SKU,Status,Variant Compare At Price,Variant Grams,Tags,Type,Variant Taxable,tariff (product.metafields.custom.tariff)
+wireless-earbuds,Premium Wireless Earbuds,Black,79.99,25.00,true,TechCo,Electronics,WE-001-BLK,active,99.99,50,audio;wireless;premium,Electronics,true,FALSE
+wireless-earbuds,Premium Wireless Earbuds,White,79.99,25.00,true,TechCo,Electronics,WE-001-WHT,active,99.99,50,audio;wireless;premium,Electronics,true,FALSE
+smart-watch,Smart Fitness Watch,Small,149.99,45.00,true,TechCo,Electronics,SW-002-S,active,199.99,80,fitness;smart;watch,Wearables,true,FALSE
+smart-watch,Smart Fitness Watch,Large,149.99,45.00,true,TechCo,Electronics,SW-002-L,active,199.99,85,fitness;smart;watch,Wearables,true,FALSE
+yoga-mat,Premium Yoga Mat,Default Title,39.99,12.00,true,FitGear,Sports,YM-003,active,49.99,1200,yoga;fitness;mat,Sports Equipment,true,FALSE
+coffee-mug,Insulated Coffee Mug,350ml,24.99,8.00,true,HomePlus,Kitchen,CM-004-350,active,29.99,300,coffee;insulated;travel,Drinkware,true,FALSE
+coffee-mug,Insulated Coffee Mug,500ml,29.99,10.00,true,HomePlus,Kitchen,CM-004-500,active,34.99,400,coffee;insulated;travel,Drinkware,true,FALSE`;
     
-    // In CSV mode, set mu to product price so optimal price calculation will be correct
-    if (inputMode === 'csv') {
-      setMu(product.price);
-      // cost is set to 0 in CSV mode because actual cost is already in cogs
-      setCost(0);
-      
-      // Only adjust shipping fee when product has shipping requirements, otherwise keep default
-      if (variant.requiresShipping !== undefined) {
-        if (!variant.requiresShipping) {
-          setShippingFee(0); // Digital products or products that don't require shipping
-        }
-        // If requires shipping but no more info, keep original setting
-      }
-      
-      // If product has weight info, can adjust shipping fee based on weight
-      if (variant.weight !== undefined && variant.weight > 0 && variant.requiresShipping) {
-        if (variant.weight > 1000) { // Over 1kg
-          setShippingFee(Math.max(shippingFee, 9.99)); // Higher shipping fee for heavy items
-        }
-      }
-      
-      // If there's product type info, can use it to determine if it's a digital product
-      if (variant.type && variant.type.toLowerCase().includes('digital')) {
-        setShippingFee(0);
-      }
-      
-      // Adjust transaction fee (%) based on tariff info
-      if (variant.tariff !== undefined) {
-        if (variant.tariff) {
-          // If there's tariff, increase transaction fee percentage
-          setTransactionFeePercent(3.9); // Higher handling fee rate including tariff
-        } else {
-          // No tariff, use standard transaction fee
-          setTransactionFeePercent(2.9); // Standard payment processing fee percentage
-        }
-      }
-      
-      // Adjust some settings based on tags (if any)
-      if (variant.tags) {
-        const tags = variant.tags.toLowerCase();
-        if (tags.includes('free-shipping') || tags.includes('free_shipping')) {
-          setShippingFee(0);
-        }
-        if (tags.includes('high-conversion') && !conversionRate) {
-          setConversionRate(5.0);
-        }
-      }
-    }
+    sessionStorage.setItem('csvContent', demoCSV);
+    sessionStorage.setItem('fileName', 'demo_products.csv');
+    toast.success('Demo data loaded! Navigating to analysis...');
     
-    setMinPrice(1);
-    setMaxPrice(Math.round(product.price * 2));
-    setPriceA(product.price);
-    setPriceB(product.price + 5);
-    setIsProductSelected(true);
-  };
-
-  // Update min/max price when mu changes
-  const handleMuChange = (value: number) => {
-    setMu(value);
-    if (inputMode === 'manual') {
-      setMinPrice(Math.round(value * 0.7));
-      setMaxPrice(Math.round(value * 1.3));
-    }
-  };
-
-  // Reset product selection when switching to manual mode
-  const handleModeChange = (mode: 'manual' | 'csv') => {
-    setInputMode(mode);
-    if (mode === 'manual') {
-      setIsProductSelected(true); // Always show chart in manual mode
-    } else {
-      setIsProductSelected(false); // Hide chart until product is selected
-    }
-  };
-
-  // Handle step navigation
-  const handleStepClick = (stepId: string) => {
-    const element = document.getElementById(stepId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
-
-  // Generate steps based on current state
-  const getSteps = () => {
-    const steps = [
-      {
-        id: 'select-mode',
-        title: 'Select Input Method',
-        description: 'Choose CSV upload or manual input',
-        status: 'completed' as const,
-        onClick: () => handleStepClick('step-select-mode')
-      },
-      {
-        id: 'upload-data',
-        title: inputMode === 'csv' ? 'Upload & Select Product' : 'Configure Parameters',
-        description: inputMode === 'csv' 
-          ? 'Upload Shopify CSV and choose a product' 
-          : 'Enter product pricing parameters',
-        status: (inputMode === 'csv' ? isProductSelected : true) ? 'completed' as const : 'current' as const,
-        onClick: () => handleStepClick('step-upload-data')
-      },
-      {
-        id: 'adjust-settings',
-        title: 'Fine-tune Settings',
-        description: 'Adjust shipping, fees, and traffic data',
-        status: (inputMode === 'csv' ? isProductSelected : true) ? 'current' as const : 'pending' as const,
-        onClick: () => handleStepClick('step-adjust-settings')
-      },
-      {
-        id: 'analyze-results',
-        title: 'View Analysis',
-        description: 'Review pricing recommendations and insights',
-        status: (inputMode === 'csv' ? isProductSelected : true) ? 'current' as const : 'pending' as const,
-        onClick: () => handleStepClick('step-analyze-results')
-      }
-    ];
-
-    return steps;
+    setTimeout(() => {
+      router.push('/analysis');
+    }, 1000);
   };
 
   return (
-    <div className="min-h-screen p-8 sm:p-16 bg-background text-foreground">
-      <main className="max-w-7xl mx-auto flex flex-col gap-12">
-        <header className="text-center">
-          <div className="flex items-center justify-center gap-4 mb-4">
-            <img 
-              src="/company_icon.png" 
-              alt="ABConvert Logo" 
-              className="w-12 h-12"
-            />
-            <h1 className="text-4xl font-bold">Shopify A/B Price Testing Tool</h1>
-          </div>
-          <p className="text-gray-300 text-lg mb-8">
-            <strong>Professional pricing analysis tool designed exclusively for Shopify merchants.</strong><br/>
-            Upload your Shopify product CSV exports to analyze optimal pricing strategies.
+    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] flex flex-col items-center justify-center p-8">
+      <div className="max-w-4xl w-full space-y-8 text-center">
+        {/* Title and Subtitle */}
+        <div className="space-y-4">
+          <h1 className="text-5xl font-bold text-white">
+            Shopify A/B Price Testing Tool
+          </h1>
+          <p className="text-xl text-gray-300">
+            Optimize your pricing strategy with data-driven insights powered by ABConvert
           </p>
-          
-          {/* Step Indicator */}
-          <StepIndicator steps={getSteps()} />
-        </header>
-
-        {/* Step 1: Input Method Selection */}
-        <div id="step-select-mode" className="border border-default rounded-lg p-6 mb-8">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <button 
-              onClick={() => handleStepClick('step-select-mode')}
-              className="w-6 h-6 bg-abc-blue-primary text-white rounded-full flex items-center justify-center text-sm hover:bg-abc-blue-secondary transition-colors cursor-pointer"
-            >
-              1
-            </button>
-            Select Input Method
-          </h2>
-          <div className="flex gap-3">
-            <button
-              onClick={() => handleModeChange('csv')}
-              className={`px-6 py-3 rounded-lg transition-colors font-medium border ${
-                inputMode === 'csv' 
-                  ? 'bg-abc-blue-primary text-white border-abc-blue-primary' 
-                  : 'bg-transparent text-gray-300 border-gray-600 hover:border-gray-500 hover:text-gray-200'
-              }`}
-            >
-              📊 Upload Shopify CSV
-            </button>
-            <button
-              onClick={() => handleModeChange('manual')}
-              className={`px-6 py-3 rounded-lg transition-colors font-medium border ${
-                inputMode === 'manual' 
-                  ? 'bg-abc-blue-primary text-white border-abc-blue-primary' 
-                  : 'bg-transparent text-gray-300 border-gray-600 hover:border-gray-500 hover:text-gray-200'
-              }`}
-            >
-              ⌨️ Manual Input
-            </button>
-          </div>
         </div>
 
-        {/* CSV Mode: Two-column layout with product selection and preview */}
-        <div className={`transition-all duration-500 ${inputMode === 'csv' ? 'grid grid-cols-1 xl:grid-cols-2 gap-8' : ''}`}>
-          {inputMode === 'csv' && (
-            <>
-              {/* Step 2: Product Upload & Selection */}
-              <div id="step-upload-data" className="border border-default rounded-lg p-6">
-                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                  <button 
-                    onClick={() => handleStepClick('step-upload-data')}
-                    className="w-6 h-6 bg-abc-blue-secondary text-white rounded-full flex items-center justify-center text-sm hover:bg-abc-blue-light transition-colors cursor-pointer"
-                  >
-                    2
-                  </button>
-                  Upload & Select Product
-                </h2>
-                <div className="mb-4 p-3 rounded-lg border-l-4 border-abc-blue-secondary">
-                  <p className="text-sm text-gray-300">
-                    <strong>💡 Tip:</strong> After uploading your Shopify CSV, select a product to see its pricing analysis on the right.
-                  </p>
-                </div>
-                <CsvUploader 
-                  onProductSelect={handleProductSelect} 
-                  shippingFee={shippingFee}
-                  transactionFeePercent={transactionFeePercent}
-                />
-              </div>
+        {/* Demo Button */}
+        <button
+          onClick={handleDemo}
+          className="px-8 py-3 bg-[var(--abc-blue-primary)] text-white font-semibold rounded-lg hover:bg-[var(--abc-blue-secondary)] transition-colors duration-200"
+        >
+          {showDemo ? 'Hide Demo' : 'Watch 1 min Demo'}
+        </button>
 
-              {/* Step 3: Live Analysis & Results */}
-              <div className={`border border-default rounded-lg p-6 ${isProductSelected ? 'border-abc-blue-secondary' : 'border-gray-600'}`}>
-                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                  <button 
-                    onClick={() => handleStepClick('step-analyze-results')}
-                    className={`w-6 h-6 rounded-full flex items-center justify-center text-sm transition-colors cursor-pointer ${
-                      isProductSelected 
-                        ? 'bg-abc-blue-secondary text-white hover:bg-abc-blue-light' 
-                        : 'bg-gray-600 text-gray-400 hover:bg-gray-500'
-                    }`}
-                  >
-                    3
-                  </button>
-                  Analysis Results
-                  {isProductSelected && selectedProduct && (
-                    <span className="ml-2 px-2 py-1 bg-abc-blue-secondary text-white text-xs rounded-full">
-                      {selectedProduct.title || 'Product Selected'}
-                    </span>
-                  )}
-                </h2>
-                
-                {!isProductSelected ? (
-                  <div className="h-[400px] flex items-center justify-center">
-                    <div className="text-center text-gray-400">
-                      <div className="text-4xl mb-4">👈</div>
-                      <p className="text-lg font-medium">Select a product from the left to see analysis</p>
-                      <p className="text-sm mt-2">The chart will update automatically with your product data</p>
-                    </div>
-                  </div>
-                ) : (
-                  <ResultChart 
-                    data={chartData} 
-                    priceA={priceA} 
-                    priceB={priceB} 
-                    setPriceA={setPriceA}
-                    setPriceB={setPriceB}
-                    minPrice={minPrice}
-                    maxPrice={maxPrice}
-                    optimalPrice={enhancedData.optimalPrice}
-                    oec={oec}
-                    setOec={setOec}
-                    isCSVMode={inputMode === 'csv'}
-                    selectedProduct={selectedProduct}
-                    targetConversionRate={targetConversionRate}
-                    setTargetConversionRate={setTargetConversionRate}
-                  />
-                )}
+        {/* Demo Section */}
+        {showDemo && (
+          <div className="p-6 border border-gray-600 rounded-lg bg-gray-900">
+            <h3 className="text-lg font-semibold mb-4">How It Works</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
+              <div className="p-4 border border-gray-700 rounded">
+                <div className="text-3xl mb-2">1️⃣</div>
+                <h4 className="font-semibold mb-1">Upload CSV</h4>
+                <p className="text-sm text-gray-400">Upload your Shopify product export CSV file</p>
               </div>
-            </>
-          )}
-
-          {/* Manual Mode: Single column layout */}
-          {inputMode === 'manual' && (
-            <div id="step-upload-data" className="border border-default rounded-lg p-6">
-              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <button 
-                  onClick={() => handleStepClick('step-upload-data')}
-                  className="w-6 h-6 bg-abc-blue-secondary text-white rounded-full flex items-center justify-center text-sm hover:bg-abc-blue-light transition-colors cursor-pointer"
-                >
-                  2
-                </button>
-                Configure Parameters
-              </h2>
-              <InputPanel
-                mu={mu}
-                setMu={handleMuChange}
-                sigma={sigma}
-                setSigma={setSigma}
-                cost={cost}
-                setCost={setCost}
-                cogs={cogs}
-                setCogs={setCogs}
-                shippingFee={shippingFee}
-                setShippingFee={setShippingFee}
-                transactionFeePercent={transactionFeePercent}
-                setTransactionFeePercent={setTransactionFeePercent}
-                traffic={traffic}
-                setTraffic={setTraffic}
-                minPrice={minPrice}
-                setMinPrice={setMinPrice}
-                maxPrice={maxPrice}
-                setMaxPrice={setMaxPrice}
-              />
+              <div className="p-4 border border-gray-700 rounded">
+                <div className="text-3xl mb-2">2️⃣</div>
+                <h4 className="font-semibold mb-1">Analyze Pricing</h4>
+                <p className="text-sm text-gray-400">Our tool analyzes optimal pricing based on your data</p>
+              </div>
+              <div className="p-4 border border-gray-700 rounded">
+                <div className="text-3xl mb-2">3️⃣</div>
+                <h4 className="font-semibold mb-1">Get Insights</h4>
+                <p className="text-sm text-gray-400">Receive actionable recommendations to maximize profit</p>
+              </div>
             </div>
-          )}
+            <div className="mt-6 text-center">
+              <button
+                onClick={handleDemoData}
+                className="px-6 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors duration-200"
+              >
+                Try with Demo Data →
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Upload Section */}
+        <div className="space-y-4">
+          <div className="p-8 border-2 border-dashed border-gray-600 rounded-lg hover:border-gray-400 transition-colors">
+            <input
+              id="csvFileInput"
+              type="file"
+              accept=".csv"
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+            <label htmlFor="csvFileInput" className="cursor-pointer">
+              <div className="space-y-4">
+                <svg className="mx-auto h-16 w-16 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                  <path d="M28 8H12a4 4 0 00-4 4v20m0 0v4a4 4 0 004 4h24a4 4 0 004-4V24m-32 8l10.5-10.5a1.5 1.5 0 012.12 0L24 29m16-13v12m0 0l-3-3m3 3l3-3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <p className="text-lg font-medium">
+                  Upload your CSV
+                </p>
+                <p className="text-sm text-gray-400">
+                  or drag and drop your Shopify product export file
+                </p>
+              </div>
+            </label>
+          </div>
+
+          <div className="text-gray-400">
+            <span>or</span>
+          </div>
+
+          <button
+            onClick={handleManualUpload}
+            className="px-6 py-2 border border-gray-600 text-white rounded-lg hover:bg-gray-800 transition-colors duration-200"
+          >
+            Manual Input
+          </button>
         </div>
 
-        {/* Advanced Settings (shown only when product is selected or in manual mode) */}
-        {(isProductSelected || inputMode === 'manual') && (
-          <div id="step-adjust-settings" className="border border-default rounded-lg p-6">
-            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-              <button 
-                onClick={() => handleStepClick('step-adjust-settings')}
-                className="w-6 h-6 bg-gray-600 text-white rounded-full flex items-center justify-center text-sm hover:bg-gray-500 transition-colors cursor-pointer"
-              >
-                ⚙️
-              </button>
-              Advanced Settings
-              <button 
-                onClick={() => setShowAdvanced(!showAdvanced)}
-                className="ml-auto text-sm text-abc-blue-secondary hover:text-abc-blue-light"
-              >
-                {showAdvanced ? 'Hide' : 'Show'} Settings
-              </button>
-            </h2>
-            
-            {showAdvanced && (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
-                <label className="block">
-                  <span className="flex items-center gap-1 text-xs font-medium text-gray-300">
-                    Shipping Fee ($):
-                    <Tooltip content="Shipping cost charged to customers. Auto-adjusts based on product data." preferredPosition="right">
-                      <svg className="w-3 h-3 text-gray-400 hover:text-gray-300" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
-                      </svg>
-                    </Tooltip>
-                  </span>
-                  <input 
-                    type="number" 
-                    value={shippingFee} 
-                    onChange={(e) => setShippingFee(parseFloat(e.target.value) || 0)}
-                    className="form-input w-full mt-1 px-2 py-1 text-sm rounded"
-                    step="0.01"
-                    min="0"
-                  />
-                </label>
-                <label className="block">
-                  <span className="flex items-center gap-1 text-xs font-medium text-gray-300">
-                    Transaction Fee (%):
-                    <Tooltip content="Payment processing fee (2.9%-3.9%)">
-                      <svg className="w-3 h-3 text-gray-400 hover:text-gray-300" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
-                      </svg>
-                    </Tooltip>
-                  </span>
-                  <input 
-                    type="number" 
-                    value={transactionFeePercent} 
-                    onChange={(e) => setTransactionFeePercent(parseFloat(e.target.value) || 0)}
-                    className="form-input w-full mt-1 px-2 py-1 text-sm rounded"
-                    step="0.1"
-                    min="0"
-                    max="100"
-                  />
-                </label>
-                {inputMode === 'csv' && (
-                  <>
-                    <label className="block">
-                      <span className="flex items-center gap-1 text-xs font-medium text-gray-300">
-                        Traffic:
-                      </span>
-                      <input 
-                        type="number" 
-                        value={sellingTraffic} 
-                        onChange={(e) => setSellingTraffic(parseFloat(e.target.value) || 0)}
-                        className="form-input w-full mt-1 px-2 py-1 text-sm rounded"
-                        step="1"
-                        min="1"
-                      />
-                    </label>
-                    <label className="block">
-                      <span className="flex items-center gap-1 text-xs font-medium text-gray-300">
-                        Conversion Rate (%):
-                      </span>
-                      <input 
-                        type="number" 
-                        value={conversionRate} 
-                        onChange={(e) => setConversionRate(parseFloat(e.target.value) || 0)}
-                        className="form-input w-full mt-1 px-2 py-1 text-sm rounded"
-                        step="0.01"
-                        min="0"
-                        max="100"
-                      />
-                    </label>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Analysis section: Comparison Table and Optimal Price side by side */}
-        {(inputMode === 'manual' || isProductSelected) && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Comparison Table section */}
-            <section className="flex flex-col">
-              <h2 className="text-2xl font-semibold mb-4">Price Comparison Analysis</h2>
-              <div id="step-analyze-results" className="border border-default rounded p-4 flex-1">
-                <ComparisonTable 
-                  priceA={comparisonData.priceA} 
-                  priceB={comparisonData.priceB} 
-                />
-              </div>
-            </section>
-
-            {/* Optimal Price section */}
-            <section className="flex flex-col">
-              <h2 className="text-2xl font-semibold mb-4">Optimal Price Analysis</h2>
-              <div className="flex-1">
-                <OptimalPriceConclusion 
-                  optimalPrice={enhancedData.optimalPrice} 
-                  oec={oec}
-                  inputMode={inputMode}
-                  sellingTraffic={sellingTraffic}
-                  conversionRate={conversionRate}
-                  shippingFee={shippingFee}
-                  transactionFeePercent={transactionFeePercent}
-                  gmv={gmv}
-                />
-              </div>
-            </section>
-          </div>
-        )}
-
-
-        {/* Export Summary section - Currently not in use */}
-        {/* 
-        <section>
-          <ExportSummary 
-            mu={mu}
-            sigma={sigma}
-            cost={cost}
-            traffic={traffic}
-            minPrice={minPrice}
-            maxPrice={maxPrice}
-            oec={oec}
-            optimalPrice={enhancedChartData.optimalPrice}
-            priceA={comparisonData.priceA}
-            priceB={comparisonData.priceB}
-          />
-        </section>
-        */}
-
-        {/* Explanation section */}
-        {(inputMode === 'manual' || isProductSelected) && (
-          <section>
-            <ExplanationText comparisonData={comparisonData} />
-          </section>
-        )}
-      </main>
-      
-      {/* Help Manual - Fixed position */}
-      <HelpManual />
+        {/* Powered by ABConvert */}
+        <div className="pt-8 text-sm text-gray-400">
+          <p>Powered by <a href="https://www.abconvert.io/" target="_blank" rel="noopener noreferrer" className="text-[var(--abc-blue-light)] hover:underline">ABConvert</a></p>
+          <p className="mt-2">Professional A/B testing solutions for Shopify merchants</p>
+        </div>
+      </div>
     </div>
   );
 }

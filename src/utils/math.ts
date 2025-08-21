@@ -110,7 +110,7 @@ export function generateChartData(
   return result;
 }
 
-interface ComparisonPoint {
+export interface ComparisonPoint {
   price: number;
   conversionRate: number;
   revenue: number;
@@ -132,6 +132,108 @@ export interface ComparisonData {
   priceA: ComparisonPoint;
   priceB: ComparisonPoint;
   chartData: ChartPoint[];
+}
+
+export interface CalculateOptimalPriceParams {
+  currentPrice: number;
+  costPerItem: number;
+  shippingFee: number;
+  transactionFeePercent: number;
+  monthlyTraffic: number;
+  oec: OECType;
+  targetConversionRate?: number;
+}
+
+export interface CalculateOptimalPriceResult {
+  comparison: ComparisonData;
+  optimalPrice: number;
+}
+
+export function calculateOptimalPrice(params: CalculateOptimalPriceParams): CalculateOptimalPriceResult {
+  const {
+    currentPrice,
+    costPerItem,
+    shippingFee,
+    transactionFeePercent,
+    monthlyTraffic,
+    oec,
+    targetConversionRate
+  } = params;
+
+  // Calculate total cost per item
+  const totalCost = costPerItem + shippingFee + (currentPrice * transactionFeePercent / 100);
+  
+  // Generate price range for testing
+  const minPrice = Math.max(totalCost * 1.1, currentPrice * 0.5); // At least 10% margin
+  const maxPrice = currentPrice * 2; // Test up to 2x current price
+  
+  // Estimate conversion parameters based on current price
+  // Assuming a typical e-commerce conversion curve
+  const mu = currentPrice * 1.2; // Mean price sensitivity
+  const sigma = currentPrice * 0.3; // Standard deviation
+  
+  // Generate chart data
+  const chartData = generateChartData(
+    mu,
+    sigma,
+    totalCost,
+    monthlyTraffic,
+    minPrice,
+    maxPrice,
+    costPerItem,
+    shippingFee,
+    transactionFeePercent
+  );
+  
+  // Find optimal price based on OEC
+  let optimalPoint = chartData[0];
+  for (const point of chartData) {
+    if (oec === 'profit' && point.profit > optimalPoint.profit) {
+      optimalPoint = point;
+    } else if (oec === 'revenue' && point.revenue > optimalPoint.revenue) {
+      optimalPoint = point;
+    } else if (oec === 'conversion' && point.conversionRate > optimalPoint.conversionRate) {
+      optimalPoint = point;
+    }
+  }
+  
+  // Create comparison data
+  const currentPoint = chartData.find(p => Math.abs(p.price - currentPrice) < 0.01) || {
+    price: currentPrice,
+    conversionRate: normCDF(currentPrice, mu, sigma) * 100,
+    revenue: 0,
+    profit: 0
+  };
+  
+  // Calculate metrics for current price if not found
+  if (currentPoint.revenue === 0) {
+    const convRate = normCDF(currentPrice, mu, sigma);
+    const conversions = monthlyTraffic * convRate;
+    currentPoint.revenue = conversions * currentPrice;
+    currentPoint.profit = conversions * (currentPrice - totalCost);
+    currentPoint.conversionRate = convRate * 100;
+  }
+  
+  const comparison: ComparisonData = {
+    priceA: {
+      price: currentPrice,
+      conversionRate: currentPoint.conversionRate,
+      revenue: currentPoint.revenue,
+      profit: currentPoint.profit
+    },
+    priceB: {
+      price: optimalPoint.price,
+      conversionRate: optimalPoint.conversionRate,
+      revenue: optimalPoint.revenue,
+      profit: optimalPoint.profit
+    },
+    chartData: chartData
+  };
+  
+  return {
+    comparison,
+    optimalPrice: optimalPoint.price
+  };
 }
 
 export interface EnhancedChartData {

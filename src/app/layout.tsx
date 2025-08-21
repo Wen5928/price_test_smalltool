@@ -4,6 +4,7 @@ import "./globals.css";
 import StructuredData from "@/components/StructuredData";
 import { Toaster } from 'react-hot-toast';
 import ErrorBoundary from "@/components/ErrorBoundary";
+import DebugPanel from "@/components/DebugPanel";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -111,6 +112,7 @@ export default function RootLayout({
         <ErrorBoundary>
           {children}
         </ErrorBoundary>
+        <DebugPanel />
       </body>
     </html>
   );
