@@ -65,7 +65,7 @@ export default function ResultsPage() {
           Back
         </button>
         
-        <div className="flex items-center gap-2">
+        <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center gap-2">
           <Image
             src="/company_icon.png"
             alt="ABConvert Logo"
@@ -76,6 +76,7 @@ export default function ResultsPage() {
           <span className="font-semibold text-lg">ABConvert</span>
         </div>
 
+        <div></div>
       </header>
 
       {/* Main Content */}

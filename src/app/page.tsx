@@ -127,7 +127,7 @@ coffee-mug,Insulated Coffee Mug,500ml,29.99,10.00,true,HomePlus,Kitchen,CM-004-5
                   <path d="M28 8H12a4 4 0 00-4 4v20m0 0v4a4 4 0 004 4h24a4 4 0 004-4V24m-32 8l10.5-10.5a1.5 1.5 0 012.12 0L24 29m16-13v12m0 0l-3-3m3 3l3-3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
                 <p className="text-lg font-medium">
-                  Upload your CSV
+                  Upload your Shopify CSV
                 </p>
                 <p className="text-sm text-gray-400">
                   or drag and drop your Shopify product export file
