@@ -50,15 +50,11 @@ export default function InteractivePriceChart({
     setCurrentComparison(comparisonData);
   }, [comparisonData.priceA.price, comparisonData.priceB.price]);
 
-  // Calculate price range with original price in the center
+  // Calculate price range
   const totalCost = selectedProduct?.costPerItem + shippingFee + (selectedProduct?.price * transactionFeePercent / 100);
-  const originalPrice = selectedProduct?.price || priceA;
-  
-  // Calculate range so original price is in the center
-  const priceRange = originalPrice * 0.8; // 80% range on each side
-  const minPrice = Math.max(totalCost * 1.1, originalPrice - priceRange);
-  const baseMaxPrice = originalPrice + priceRange;
-  const maxPrice = optimalPrice ? Math.max(baseMaxPrice, optimalPrice * 1.1, optimalPrice + 10) : baseMaxPrice;
+  const minPrice = Math.max(totalCost * 1.1, selectedProduct?.price * 0.5) || 1;
+  const baseMaxPrice = selectedProduct?.price * 2 || 100;
+  const maxPrice = optimalPrice ? Math.max(baseMaxPrice, optimalPrice * 1.2, optimalPrice + 20) : baseMaxPrice;
   
   // Ensure priceB stays within reasonable bounds when optimal price changes
   useEffect(() => {
