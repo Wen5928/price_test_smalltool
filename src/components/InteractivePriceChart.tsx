@@ -37,9 +37,8 @@ export default function InteractivePriceChart({
   const [priceA, setPriceA] = useState(comparisonData.priceA.price);
   const [priceB, setPriceB] = useState(comparisonData.priceB.price);
   const [currentComparison, setCurrentComparison] = useState(comparisonData);
-  const [targetOec, setTargetOec] = useState<'revenue' | 'profit' | 'conversion'>(propTargetOec || 'profit');
+  const [targetOec, setTargetOec] = useState<'revenue' | 'profit'>(propTargetOec === 'conversion' ? 'profit' : propTargetOec || 'profit');
   const [baseConversionRate, setBaseConversionRate] = useState(50); // Default base conversion rate %
-  const [targetConversionRate, setTargetConversionRate] = useState<number>(60); // Target conversion rate for optimization
   const [optimalPrice, setOptimalPrice] = useState<number | null>(null);
 
   // Update prices when product changes
@@ -51,11 +50,15 @@ export default function InteractivePriceChart({
     setCurrentComparison(comparisonData);
   }, [comparisonData.priceA.price, comparisonData.priceB.price]);
 
-  // Calculate price range
+  // Calculate price range with original price in the center
   const totalCost = selectedProduct?.costPerItem + shippingFee + (selectedProduct?.price * transactionFeePercent / 100);
-  const minPrice = Math.max(totalCost * 1.1, selectedProduct?.price * 0.5) || 1;
-  const baseMaxPrice = selectedProduct?.price * 2 || 100;
-  const maxPrice = optimalPrice ? Math.max(baseMaxPrice, optimalPrice * 1.5) : baseMaxPrice;
+  const originalPrice = selectedProduct?.price || priceA;
+  
+  // Calculate range so original price is in the center
+  const priceRange = originalPrice * 0.8; // 80% range on each side
+  const minPrice = Math.max(totalCost * 1.1, originalPrice - priceRange);
+  const baseMaxPrice = originalPrice + priceRange;
+  const maxPrice = optimalPrice ? Math.max(baseMaxPrice, optimalPrice * 1.1, optimalPrice + 10) : baseMaxPrice;
   
   // Ensure priceB stays within reasonable bounds when optimal price changes
   useEffect(() => {
@@ -80,8 +83,7 @@ export default function InteractivePriceChart({
         shippingFee: selectedProduct.requiresShipping ? shippingFee : 0,
         transactionFeePercent,
         monthlyTraffic,
-        oec: targetOec,
-        targetConversionRate: targetOec === 'conversion' ? targetConversionRate : undefined
+        oec: targetOec
       });
 
       return result.optimalPrice;
@@ -89,14 +91,14 @@ export default function InteractivePriceChart({
       console.error('Error calculating optimal price:', error);
       return null;
     }
-  }, [selectedProduct, shippingFee, transactionFeePercent, monthlyTraffic, targetOec, targetConversionRate]);
+  }, [selectedProduct, shippingFee, transactionFeePercent, monthlyTraffic, targetOec]);
 
   const updateComparison = useCallback(() => {
     if (!selectedProduct) return;
 
     // Calculate optimal price
     const optimal = calculateOptimalPriceForOec();
-    console.log('Updating optimal price:', optimal, 'targetOec:', targetOec, 'targetConversionRate:', targetConversionRate);
+    console.log('Updating optimal price:', optimal, 'targetOec:', targetOec);
     setOptimalPrice(optimal);
 
     // Calculate total cost for conversion rate calculations
@@ -112,28 +114,10 @@ export default function InteractivePriceChart({
     const elasticity = -1.5; // Price elasticity coefficient
     const convRateA = Math.max(0.01, baseCR * (1 + elasticity * priceChangeA));
     
-    let convRateB: number;
-    let actualPriceB = priceB;
-    
-    if (targetOec === 'conversion' && targetConversionRate > 0) {
-      // In conversion mode, use target conversion rate and reverse-calculate price
-      convRateB = targetConversionRate / 100;
-      // Reverse calculate price from target conversion rate
-      // convRate = baseCR * (1 + elasticity * priceChange)
-      // priceChange = (convRate / baseCR - 1) / elasticity
-      const targetPriceChange = (convRateB / baseCR - 1) / elasticity;
-      actualPriceB = basePrice * (1 + targetPriceChange);
-      actualPriceB = Math.max(minPrice, Math.min(maxPrice, actualPriceB)); // Clamp to valid range
-      
-      // Update priceB state if it's different
-      if (Math.abs(actualPriceB - priceB) > 0.01) {
-        setPriceB(Math.round(actualPriceB * 100) / 100);
-      }
-    } else {
-      // Normal mode: calculate conversion rate from price
-      const priceChangeB = (priceB - basePrice) / basePrice;
-      convRateB = Math.max(0.01, baseCR * (1 + elasticity * priceChangeB));
-    }
+    // Normal mode: calculate conversion rate from price
+    const priceChangeB = (priceB - basePrice) / basePrice;
+    const convRateB = Math.max(0.01, baseCR * (1 + elasticity * priceChangeB));
+    const actualPriceB = priceB;
 
     // Calculate conversions, revenue, and profit
     const conversionsA = monthlyTraffic * convRateA;
@@ -171,7 +155,7 @@ export default function InteractivePriceChart({
       const optimalData = getOptimalMetrics();
       onOptimalPriceChange(optimalData);
     }
-  }, [priceA, priceB, selectedProduct, shippingFee, transactionFeePercent, monthlyTraffic, targetOec, baseConversionRate, targetConversionRate, onPriceChange, onOptimalPriceChange, calculateOptimalPriceForOec]);
+  }, [priceA, priceB, selectedProduct, shippingFee, transactionFeePercent, monthlyTraffic, targetOec, baseConversionRate, onPriceChange, onOptimalPriceChange, calculateOptimalPriceForOec]);
 
   useEffect(() => {
     const timeoutId = setTimeout(updateComparison, 100); // Debounce 100ms
@@ -192,6 +176,12 @@ export default function InteractivePriceChart({
     }
   };
 
+  const setToOptimalPrice = () => {
+    if (optimalPrice !== null) {
+      setPriceB(optimalPrice);
+    }
+  };
+
   // Calculate optimal price metrics for comparison
   const getOptimalMetrics = (): ComparisonPoint | null => {
     if (!optimalPrice || !selectedProduct) return null;
@@ -199,20 +189,11 @@ export default function InteractivePriceChart({
     const basePrice = selectedProduct.price || priceA;
     const totalCostOptimal = selectedProduct.costPerItem + (selectedProduct.requiresShipping ? shippingFee : 0) + (optimalPrice * transactionFeePercent / 100);
     
-    let convRateOptimal: number;
-    
-    if (targetOec === 'conversion' && targetConversionRate > 0) {
-      // For conversion optimization, use the target conversion rate directly
-      convRateOptimal = targetConversionRate / 100;
-      console.log('Using target conversion rate:', targetConversionRate, '% for optimal metrics');
-    } else {
-      // For other optimization modes, calculate using price elasticity
-      const baseCR = baseConversionRate / 100;
-      const priceChangeOptimal = (optimalPrice - basePrice) / basePrice;
-      const elasticity = -1.5;
-      convRateOptimal = Math.max(0.01, baseCR * (1 + elasticity * priceChangeOptimal));
-      console.log('Using calculated conversion rate:', convRateOptimal * 100, '% for optimal metrics');
-    }
+    // Calculate using price elasticity
+    const baseCR = baseConversionRate / 100;
+    const priceChangeOptimal = (optimalPrice - basePrice) / basePrice;
+    const elasticity = -1.5;
+    const convRateOptimal = Math.max(0.01, baseCR * (1 + elasticity * priceChangeOptimal));
     
     const conversionsOptimal = monthlyTraffic * convRateOptimal;
     const revenueOptimal = conversionsOptimal * optimalPrice;
@@ -329,8 +310,7 @@ export default function InteractivePriceChart({
             <div className="flex gap-1 justify-center">
               {[
                 { value: 'profit', label: '💰 Profit' },
-                { value: 'revenue', label: '💵 Revenue' },
-                { value: 'conversion', label: '📈 Conv' }
+                { value: 'revenue', label: '💵 Revenue' }
               ].map((option) => (
                 <button
                   key={option.value}
@@ -353,59 +333,22 @@ export default function InteractivePriceChart({
           </div>
         </div>
 
-        {/* Base Conversion Rate / Target Conversion Rate Setting */}
+        {/* Base Conversion Rate Setting */}
         <div className="flex justify-center">
           <div>
-            {targetOec === 'conversion' ? (
-              <div className="space-y-3">
-                <div>
-                  <div className="text-base text-blue-400 mb-2 text-center font-medium">Base Conversion Rate</div>
-                  <div className="flex items-center justify-center gap-2">
-                    <input
-                      type="number"
-                      value={baseConversionRate}
-                      onChange={(e) => setBaseConversionRate(parseFloat(e.target.value) || 0)}
-                      min="0"
-                      max="100"
-                      step="0.1"
-                      className="w-16 px-2 py-1 text-xs font-semibold text-white border border-gray-500 rounded text-center bg-transparent"
-                    />
-                    <span className="text-xs text-white">%</span>
-                  </div>
-                </div>
-                <div>
-                  <div className="text-base text-orange-400 mb-2 text-center font-medium">Target Conversion Rate</div>
-                  <div className="flex items-center justify-center gap-2">
-                    <input
-                      type="number"
-                      value={targetConversionRate}
-                      onChange={(e) => setTargetConversionRate(parseFloat(e.target.value) || 0)}
-                      min="0"
-                      max="100"
-                      step="0.1"
-                      className="w-16 px-2 py-1 text-xs font-semibold text-white border border-gray-500 rounded text-center bg-transparent"
-                    />
-                    <span className="text-xs text-white">%</span>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <>
-                <div className="text-base text-blue-400 mb-2 text-center font-medium">Base Conversion Rate</div>
-                <div className="flex items-center justify-center gap-2">
-                  <input
-                    type="number"
-                    value={baseConversionRate}
-                    onChange={(e) => setBaseConversionRate(parseFloat(e.target.value) || 0)}
-                    min="0"
-                    max="100"
-                    step="0.1"
-                    className="w-16 px-2 py-1 text-xs font-semibold text-white border border-gray-500 rounded text-center bg-transparent"
-                  />
-                  <span className="text-xs text-white">%</span>
-                </div>
-              </>
-            )}
+            <div className="text-base text-blue-400 mb-2 text-center font-medium">Base Conversion Rate</div>
+            <div className="flex items-center justify-center gap-2">
+              <input
+                type="number"
+                value={baseConversionRate}
+                onChange={(e) => setBaseConversionRate(parseFloat(e.target.value) || 0)}
+                min="0"
+                max="100"
+                step="0.1"
+                className="w-16 px-2 py-1 text-xs font-semibold text-white border border-gray-500 rounded text-center bg-transparent"
+              />
+              <span className="text-xs text-white">%</span>
+            </div>
           </div>
         </div>
       </div>
@@ -430,6 +373,12 @@ export default function InteractivePriceChart({
             <div className="text-xl font-bold text-red-400">
               ${optimalPrice.toFixed(2)}
             </div>
+            <button
+              onClick={setToOptimalPrice}
+              className="mt-2 px-3 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
+            >
+              Set to Optimal
+            </button>
           </div>
         )}
       </div>
@@ -641,20 +590,14 @@ export default function InteractivePriceChart({
             <div className={`text-xl font-bold ${
               targetOec === 'profit' ? 
                 (optimalMetrics.profit > currentComparison.priceA.profit ? 'text-green-400' : 'text-red-400') :
-              targetOec === 'revenue' ? 
-                (optimalMetrics.revenue > currentComparison.priceA.revenue ? 'text-green-400' : 'text-red-400') :
-                (optimalMetrics.conversionRate > currentComparison.priceA.conversionRate ? 'text-green-400' : 'text-red-400')
+                (optimalMetrics.revenue > currentComparison.priceA.revenue ? 'text-green-400' : 'text-red-400')
             }`}>
               {targetOec === 'profit' ? 
                 `${optimalMetrics.profit > currentComparison.priceA.profit ? '+' : ''}$${(optimalMetrics.profit - currentComparison.priceA.profit).toFixed(0)}` :
-               targetOec === 'revenue' ? 
-                `${optimalMetrics.revenue > currentComparison.priceA.revenue ? '+' : ''}$${(optimalMetrics.revenue - currentComparison.priceA.revenue).toFixed(0)}` :
-                `${optimalMetrics.conversionRate > currentComparison.priceA.conversionRate ? '+' : ''}${(optimalMetrics.conversionRate - currentComparison.priceA.conversionRate).toFixed(2)}%`}
+                `${optimalMetrics.revenue > currentComparison.priceA.revenue ? '+' : ''}$${(optimalMetrics.revenue - currentComparison.priceA.revenue).toFixed(0)}`}
             </div>
             <div className="text-xs text-gray-500 mt-1">
-              {targetOec === 'profit' ? 'Profit Change' :
-               targetOec === 'revenue' ? 'Revenue Change' :
-               'Conversion Change'}
+              {targetOec === 'profit' ? 'Profit Change' : 'Revenue Change'}
             </div>
           </div>
         )}

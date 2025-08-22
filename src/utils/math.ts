@@ -141,7 +141,6 @@ export interface CalculateOptimalPriceParams {
   transactionFeePercent: number;
   monthlyTraffic: number;
   oec: OECType;
-  targetConversionRate?: number;
 }
 
 export interface CalculateOptimalPriceResult {
@@ -156,8 +155,7 @@ export function calculateOptimalPrice(params: CalculateOptimalPriceParams): Calc
     shippingFee,
     transactionFeePercent,
     monthlyTraffic,
-    oec,
-    targetConversionRate
+    oec
   } = params;
 
   // Calculate total cost per item
@@ -176,7 +174,7 @@ export function calculateOptimalPrice(params: CalculateOptimalPriceParams): Calc
   const chartData = generateChartData(
     mu,
     sigma,
-    totalCost,
+    costPerItem,  // Pass costPerItem instead of totalCost
     monthlyTraffic,
     minPrice,
     maxPrice,
@@ -254,8 +252,7 @@ export function generateEnhancedChartData(
   transactionFeePercent: number = 0,
   actualConversionRate?: number,
   gmv?: number,
-  originalPrice?: number,
-  targetConversionRate?: number
+  originalPrice?: number
 ): EnhancedChartData {
   const chartData = generateChartData(mu, sigma, cost, traffic, minPrice, maxPrice, cogs, shippingFee, transactionFeePercent, actualConversionRate, gmv, originalPrice);
   
@@ -275,8 +272,8 @@ export function generateEnhancedChartData(
         conversionRate: fallbackConvRate * 100,
         revenue: fallbackRevenue,
         profit: fallbackProfit,
-        metric: oec === 'revenue' ? 'Revenue' : oec === 'profit' ? 'Profit' : 'Conversion Rate',
-        value: oec === 'revenue' ? fallbackRevenue : oec === 'profit' ? fallbackProfit : fallbackConvRate * 100
+        metric: oec === 'revenue' ? 'Revenue' : oec === 'profit' ? 'Profit' : oec === 'conversion' ? 'Conversion Rate' : 'Conversion Rate',
+        value: oec === 'revenue' ? fallbackRevenue : oec === 'profit' ? fallbackProfit : oec === 'conversion' ? fallbackConvRate * 100 : fallbackConvRate * 100
       }
     };
   }
@@ -299,31 +296,9 @@ export function generateEnhancedChartData(
       break;
     case 'conversion':
       metricName = 'Conversion Rate';
-      
-      if (targetConversionRate && targetConversionRate > 0) {
-        // Find the price point closest to the target conversion rate
-        optimalPoint = chartData.reduce((closest, current) => {
-          const closestDiff = Math.abs(closest.conversionRate - targetConversionRate);
-          const currentDiff = Math.abs(current.conversionRate - targetConversionRate);
-          return currentDiff < closestDiff ? current : closest;
-        });
-      } else {
-        // Original logic: find the point with highest conversion rate
-        // but with a reasonable minimum price constraint to avoid $1 optimization
-        const minReasonablePrice = Math.max(minPrice, cost * 1.5); // At least 50% margin
-        const reasonablePricePoints = chartData.filter(point => point.price >= minReasonablePrice);
-        
-        if (reasonablePricePoints.length > 0) {
-          optimalPoint = reasonablePricePoints.reduce((max, current) => 
-            current.conversionRate > max.conversionRate ? current : max
-          );
-        } else {
-          // Fallback to original logic if no reasonable price points
-          optimalPoint = chartData.reduce((max, current) => 
-            current.conversionRate > max.conversionRate ? current : max
-          );
-        }
-      }
+      optimalPoint = chartData.reduce((max, current) => 
+        current.conversionRate > max.conversionRate ? current : max
+      );
       break;
   }
   
@@ -335,6 +310,7 @@ export function generateEnhancedChartData(
     metric: metricName,
     value: oec === 'revenue' ? optimalPoint.revenue : 
            oec === 'profit' ? optimalPoint.profit : 
+           oec === 'conversion' ? optimalPoint.conversionRate :
            optimalPoint.conversionRate
   };
   

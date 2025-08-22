@@ -88,8 +88,7 @@ export default function AnalysisPage() {
       shippingFee: productData.requiresShipping ? shippingFee : 0,
       transactionFeePercent,
       monthlyTraffic,
-      oec: targetOec,
-      targetConversionRate
+      oec: targetOec
     });
 
     setComparisonData(optimalPriceResult.comparison);
@@ -111,8 +110,7 @@ export default function AnalysisPage() {
       shippingFee: productData.requiresShipping ? shippingFee : 0,
       transactionFeePercent,
       monthlyTraffic,
-      oec: targetOec,
-      targetConversionRate
+      oec: targetOec
     });
 
     setComparisonData(optimalPriceResult.comparison);
@@ -127,8 +125,7 @@ export default function AnalysisPage() {
       shippingFee: selectedProduct.requiresShipping ? shippingFee : 0,
       transactionFeePercent,
       monthlyTraffic,
-      oec: targetOec,
-      targetConversionRate
+      oec: targetOec
     });
 
     setComparisonData(optimalPriceResult.comparison);
