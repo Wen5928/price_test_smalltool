@@ -178,11 +178,18 @@ Contributions are welcome! Please feel free to submit issues, feature requests, 
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+## 📚 Documentation
+
+For detailed documentation, please check the `docs/` directory:
+- **[Documentation Index](docs/Documentation_Index.md)** - Complete documentation navigation
+- **[Current Architecture](docs/Current_Project_Architecture.md)** - Technical architecture details
+- **[Testing Instructions](docs/Testing_Instructions.md)** - How to test the application
+- **[Project Status](docs/Project_Status_Summary.md)** - Current project status
+
 ## 🔗 Related Links
 
 - **Live Demo**: https://price-test-smalltool.vercel.app/
 - **ABConvert**: https://www.abconvert.io/ (Professional A/B testing platform)
-- **Documentation**: See `Proof of Concept.md` for detailed technical specifications
 
 ---
 

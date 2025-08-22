@@ -11,7 +11,6 @@ export default function ResultsPage() {
   const router = useRouter();
   const [comparisonData, setComparisonData] = useState<ComparisonData | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
-  const [showWarning, setShowWarning] = useState(true);
 
   useEffect(() => {
     // Retrieve data from sessionStorage
@@ -77,26 +76,6 @@ export default function ResultsPage() {
           <span className="font-semibold text-lg">ABConvert</span>
         </div>
 
-        {/* Warning indicator */}
-        {showWarning && (
-          <div className="absolute right-6 top-1/2 -translate-y-1/2">
-            <div className="relative group">
-              <button
-                onClick={() => setShowWarning(false)}
-                className="p-2 bg-yellow-500/20 text-yellow-500 rounded-lg hover:bg-yellow-500/30 transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-              </button>
-              <div className="absolute right-0 top-full mt-2 w-64 p-3 bg-gray-800 border border-yellow-500/50 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto">
-                <p className="text-sm text-yellow-400">
-                  ⚠️ These are theoretical calculations. Actual results may vary based on market conditions.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
       </header>
 
       {/* Main Content */}

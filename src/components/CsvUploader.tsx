@@ -465,7 +465,7 @@ export default function CsvUploader({
 
           <div className="border rounded-lg">
             {/* Vertical scrolling product display */}
-            <div className="max-h-[600px] overflow-y-auto p-4">
+            <div className="max-h-[500px] overflow-y-auto p-4">
               {filteredVariants.length === 0 ? (
                 <EmptyState
                   icon="🔍"

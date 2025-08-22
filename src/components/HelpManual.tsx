@@ -10,25 +10,25 @@ export default function HelpManual() {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div className="relative z-50">
       {/* Help Button */}
       <div
-        className={`w-12 h-12 rounded-full flex items-center justify-center cursor-pointer shadow-lg transition-all duration-200 hover:scale-110 ${
+        className={`w-12 h-12 rounded-full flex items-center justify-center cursor-pointer shadow-lg transition-all duration-200 hover:scale-110 border-2 border-white ${
           isVisible 
-            ? 'bg-[var(--color-error)] hover:bg-[var(--color-error-dark)]' 
-            : 'bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)]'
+            ? 'bg-transparent hover:bg-gray-800' 
+            : 'bg-transparent hover:bg-gray-800'
         }`}
         onClick={toggleHelp}
         title={isVisible ? "Close Help" : "Open Manual"}
       >
-        <span className="text-[var(--abc-pure-white)] text-xl font-bold">
+        <span className="text-white text-xl font-bold">
           {isVisible ? '×' : '?'}
         </span>
       </div>
 
       {/* Help Panel */}
       {isVisible && (
-        <div className="absolute bottom-16 right-0 w-96 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg shadow-xl max-h-96 overflow-y-auto">
+        <div className="absolute top-16 right-0 w-96 max-w-[90vw] bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg shadow-xl max-h-96 overflow-y-auto">
           <div className="p-4">
             <div className="flex items-center gap-2 mb-4 border-b border-[var(--color-border)] pb-2">
               <span className="text-[var(--color-primary)] text-lg">📚</span>

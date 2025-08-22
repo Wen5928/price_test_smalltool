@@ -4,13 +4,23 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { ComparisonData, calculateOptimalPrice } from '@/utils/math';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
+interface ComparisonPoint {
+  price: number;
+  conversionRate: number;
+  revenue: number;
+  profit: number;
+}
+
 interface InteractivePriceChartProps {
   comparisonData: ComparisonData;
   selectedProduct: any;
   shippingFee: number;
   transactionFeePercent: number;
   monthlyTraffic: number;
+  targetOec?: 'revenue' | 'profit' | 'conversion';
   onPriceChange?: (newComparison: ComparisonData) => void;
+  onOecChange?: (oec: 'revenue' | 'profit' | 'conversion') => void;
+  onOptimalPriceChange?: (optimalData: ComparisonPoint | null) => void;
 }
 
 export default function InteractivePriceChart({ 
@@ -19,118 +29,210 @@ export default function InteractivePriceChart({
   shippingFee,
   transactionFeePercent,
   monthlyTraffic,
-  onPriceChange
+  targetOec: propTargetOec,
+  onPriceChange,
+  onOecChange,
+  onOptimalPriceChange
 }: InteractivePriceChartProps) {
   const [priceA, setPriceA] = useState(comparisonData.priceA.price);
   const [priceB, setPriceB] = useState(comparisonData.priceB.price);
   const [currentComparison, setCurrentComparison] = useState(comparisonData);
+  const [targetOec, setTargetOec] = useState<'revenue' | 'profit' | 'conversion'>(propTargetOec || 'profit');
+  const [baseConversionRate, setBaseConversionRate] = useState(50); // Default base conversion rate %
+  const [optimalPrice, setOptimalPrice] = useState<number | null>(null);
+
+  // Update prices when product changes
+  useEffect(() => {
+    setPriceA(comparisonData.priceA.price);
+    // Ensure priceB doesn't exceed reasonable bounds
+    const newPriceB = Math.min(comparisonData.priceB.price, comparisonData.priceA.price * 1.5);
+    setPriceB(newPriceB);
+    setCurrentComparison(comparisonData);
+  }, [comparisonData.priceA.price, comparisonData.priceB.price]);
 
   // Calculate price range
   const totalCost = selectedProduct?.costPerItem + shippingFee + (selectedProduct?.price * transactionFeePercent / 100);
   const minPrice = Math.max(totalCost * 1.1, selectedProduct?.price * 0.5) || 1;
-  const maxPrice = selectedProduct?.price * 2 || 100;
+  const baseMaxPrice = selectedProduct?.price * 2 || 100;
+  const maxPrice = optimalPrice ? Math.max(baseMaxPrice, optimalPrice * 1.5) : baseMaxPrice;
+  
+  // Ensure priceB stays within reasonable bounds when optimal price changes
+  useEffect(() => {
+    if (priceB > maxPrice) {
+      setPriceB(maxPrice);
+    } else if (priceB < minPrice) {
+      setPriceB(minPrice);
+    }
+  }, [maxPrice, minPrice, priceB]);
 
   const priceAPercent = ((priceA - minPrice) / (maxPrice - minPrice)) * 100;
   const priceBPercent = ((priceB - minPrice) / (maxPrice - minPrice)) * 100;
+  const optimalPricePercent = optimalPrice ? ((optimalPrice - minPrice) / (maxPrice - minPrice)) * 100 : null;
+
+  const calculateOptimalPriceForOec = useCallback(() => {
+    if (!selectedProduct) return null;
+
+    try {
+      const result = calculateOptimalPrice({
+        currentPrice: selectedProduct.price,
+        costPerItem: selectedProduct.costPerItem,
+        shippingFee: selectedProduct.requiresShipping ? shippingFee : 0,
+        transactionFeePercent,
+        monthlyTraffic,
+        oec: targetOec,
+        targetConversionRate: undefined
+      });
+
+      return result.optimalPrice;
+    } catch (error) {
+      console.error('Error calculating optimal price:', error);
+      return null;
+    }
+  }, [selectedProduct, shippingFee, transactionFeePercent, monthlyTraffic, targetOec]);
 
   const updateComparison = useCallback(() => {
     if (!selectedProduct) return;
 
-    // Recalculate comparison when prices change
-    const resultA = calculateOptimalPrice({
-      currentPrice: priceA,
-      costPerItem: selectedProduct.costPerItem,
-      shippingFee: selectedProduct.requiresShipping ? shippingFee : 0,
-      transactionFeePercent,
-      monthlyTraffic,
-      oec: 'profit'
-    });
+    // Calculate optimal price
+    const optimal = calculateOptimalPriceForOec();
+    setOptimalPrice(optimal);
 
-    const resultB = calculateOptimalPrice({
-      currentPrice: priceB,
-      costPerItem: selectedProduct.costPerItem,
-      shippingFee: selectedProduct.requiresShipping ? shippingFee : 0,
-      transactionFeePercent,
-      monthlyTraffic,
-      oec: 'profit'
-    });
+    // Calculate total cost for conversion rate calculations
+    const totalCostA = selectedProduct.costPerItem + (selectedProduct.requiresShipping ? shippingFee : 0) + (priceA * transactionFeePercent / 100);
+    const totalCostB = selectedProduct.costPerItem + (selectedProduct.requiresShipping ? shippingFee : 0) + (priceB * transactionFeePercent / 100);
+
+    // Calculate conversion rates using base conversion rate and price elasticity
+    const basePrice = selectedProduct.price || priceA;
+    const baseCR = baseConversionRate / 100; // Convert percentage to decimal
+    
+    // Calculate relative price changes and apply elasticity
+    const priceChangeA = (priceA - basePrice) / basePrice;
+    const priceChangeB = (priceB - basePrice) / basePrice;
+    
+    // Price elasticity: higher prices reduce conversion, lower prices increase conversion
+    const elasticity = -1.5; // Price elasticity coefficient
+    const convRateA = Math.max(0.01, baseCR * (1 + elasticity * priceChangeA));
+    const convRateB = Math.max(0.01, baseCR * (1 + elasticity * priceChangeB));
+
+    // Calculate conversions, revenue, and profit
+    const conversionsA = monthlyTraffic * convRateA;
+    const conversionsB = monthlyTraffic * convRateB;
+
+    const revenueA = conversionsA * priceA;
+    const revenueB = conversionsB * priceB;
+
+    const profitA = conversionsA * (priceA - totalCostA);
+    const profitB = conversionsB * (priceB - totalCostB);
 
     // Create new comparison with user-adjusted prices
     const updatedComparison: ComparisonData = {
       priceA: {
         price: priceA,
-        conversionRate: resultA.comparison.priceA.conversionRate,
-        revenue: resultA.comparison.priceA.revenue,
-        profit: resultA.comparison.priceA.profit
+        conversionRate: convRateA * 100, // Convert to percentage for display
+        revenue: revenueA,
+        profit: profitA
       },
       priceB: {
         price: priceB,
-        conversionRate: resultB.comparison.priceA.conversionRate,
-        revenue: resultB.comparison.priceA.revenue,
-        profit: resultB.comparison.priceA.profit
+        conversionRate: convRateB * 100, // Convert to percentage for display
+        revenue: revenueB,
+        profit: profitB
       },
-      chartData: resultA.comparison.chartData
+      chartData: [] // We can keep empty or generate if needed
     };
 
     setCurrentComparison(updatedComparison);
     if (onPriceChange) {
       onPriceChange(updatedComparison);
     }
-  }, [priceA, priceB, selectedProduct, shippingFee, transactionFeePercent, monthlyTraffic, onPriceChange]);
+    if (onOptimalPriceChange) {
+      const optimalData = getOptimalMetrics();
+      onOptimalPriceChange(optimalData);
+    }
+  }, [priceA, priceB, selectedProduct, shippingFee, transactionFeePercent, monthlyTraffic, targetOec, baseConversionRate, onPriceChange, onOptimalPriceChange, calculateOptimalPriceForOec]);
 
   useEffect(() => {
     const timeoutId = setTimeout(updateComparison, 100); // Debounce 100ms
     return () => clearTimeout(timeoutId);
   }, [updateComparison]);
 
-  const handlePriceAChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPriceA(parseFloat(e.target.value));
-  };
-
   const handlePriceBChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPriceB(parseFloat(e.target.value));
-  };
-
-  const handlePriceAInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseFloat(e.target.value);
-    if (!isNaN(value) && value >= minPrice && value <= maxPrice) {
-      setPriceA(value);
-    }
+    // Round to 2 decimal places
+    setPriceB(Math.round(value * 100) / 100);
   };
 
   const handlePriceBInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseFloat(e.target.value);
     if (!isNaN(value) && value >= minPrice && value <= maxPrice) {
-      setPriceB(value);
+      // Round to 2 decimal places
+      setPriceB(Math.round(value * 100) / 100);
     }
   };
+
+  // Calculate optimal price metrics for comparison
+  const getOptimalMetrics = (): ComparisonPoint | null => {
+    if (!optimalPrice || !selectedProduct) return null;
+
+    const basePrice = selectedProduct.price || priceA;
+    const baseCR = baseConversionRate / 100;
+    const priceChangeOptimal = (optimalPrice - basePrice) / basePrice;
+    const elasticity = -1.5;
+    const convRateOptimal = Math.max(0.01, baseCR * (1 + elasticity * priceChangeOptimal));
+    
+    const totalCostOptimal = selectedProduct.costPerItem + (selectedProduct.requiresShipping ? shippingFee : 0) + (optimalPrice * transactionFeePercent / 100);
+    const conversionsOptimal = monthlyTraffic * convRateOptimal;
+    const revenueOptimal = conversionsOptimal * optimalPrice;
+    const profitOptimal = conversionsOptimal * (optimalPrice - totalCostOptimal);
+
+    return {
+      price: optimalPrice,
+      conversionRate: convRateOptimal * 100,
+      revenue: revenueOptimal,
+      profit: profitOptimal
+    };
+  };
+
+  const optimalMetrics = getOptimalMetrics();
 
   const data = [
     {
       name: 'Conversion Rate (%)',
-      Original: currentComparison.priceA.conversionRate,
-      New: currentComparison.priceB.conversionRate,
-    },
-    {
-      name: 'Revenue ($)',
-      Original: currentComparison.priceA.revenue,
-      New: currentComparison.priceB.revenue,
+      A: currentComparison.priceA.conversionRate,
+      B: currentComparison.priceB.conversionRate,
+      Optimal: optimalMetrics ? optimalMetrics.conversionRate : 0
     },
     {
       name: 'Profit ($)',
-      Original: currentComparison.priceA.profit,
-      New: currentComparison.priceB.profit,
+      A: currentComparison.priceA.profit,
+      B: currentComparison.priceB.profit,
+      Optimal: optimalMetrics ? optimalMetrics.profit : 0
+    },
+    {
+      name: 'Revenue ($)',
+      A: currentComparison.priceA.revenue,
+      B: currentComparison.priceB.revenue,
+      Optimal: optimalMetrics ? optimalMetrics.revenue : 0
     },
   ];
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
+      const getDisplayName = (name: string) => {
+        switch (name) {
+          case 'A': return 'Original';
+          case 'B': return 'New';
+          case 'Optimal': return 'Optimal';
+          default: return name;
+        }
+      };
+
       return (
         <div className="bg-gray-800 p-3 rounded-lg border border-gray-600">
           <p className="text-white font-semibold">{label}</p>
           {payload.map((entry: any, index: number) => (
             <p key={index} className="text-sm" style={{ color: entry.color }}>
-              {entry.name}: {entry.value.toFixed(2)}
+              {getDisplayName(entry.name)}: {entry.value.toFixed(2)}
               {label.includes('%') ? '%' : label.includes('$') ? '' : ''}
             </p>
           ))}
@@ -141,7 +243,7 @@ export default function InteractivePriceChart({
   };
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-4">
       <style jsx>{`
         .slider-green::-webkit-slider-thumb {
           appearance: none;
@@ -163,49 +265,118 @@ export default function InteractivePriceChart({
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
       `}</style>
-      {/* Price Display */}
-      <div className="flex justify-center gap-8 mb-4">
+      
+      {/* First Row: Product Info + Optimization Focus + Base Conversion Rate */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 border border-gray-600 rounded-lg bg-gray-800/30">
+        {/* Selected Product Info */}
+        <div className="flex justify-center">
+          <div className="text-center">
+            <div className="text-sm text-gray-400 mb-1">Selected Product</div>
+            <div className="text-sm font-medium text-white truncate" title={selectedProduct?.title || selectedProduct?.name}>
+              {selectedProduct?.title || selectedProduct?.name || 'Product'}
+            </div>
+            <div className="text-xs text-gray-400 mt-2 space-y-1">
+              <div>Cost: ${selectedProduct?.costPerItem || 0}</div>
+              <div>Shipping: ${selectedProduct?.requiresShipping ? shippingFee : 0}</div>
+              <div>Transaction Fee: ${((priceB * transactionFeePercent) / 100).toFixed(2)}</div>
+              <div className="font-medium text-white">
+                Total Cost: ${((selectedProduct?.costPerItem || 0) + (selectedProduct?.requiresShipping ? shippingFee : 0) + ((priceB * transactionFeePercent) / 100)).toFixed(2)}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* OEC Selector */}
+        <div className="flex justify-center">
+          <div>
+            <div className="text-sm text-green-400 mb-2 text-center font-medium">Optimization Focus</div>
+            <div className="flex gap-1 justify-center">
+              {[
+                { value: 'profit', label: '💰 Profit' },
+                { value: 'revenue', label: '💵 Revenue' },
+                { value: 'conversion', label: '📈 Conv' }
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => {
+                    setTargetOec(option.value as any);
+                    if (onOecChange) {
+                      onOecChange(option.value as any);
+                    }
+                  }}
+                  className={`px-3 py-2 rounded border text-sm font-medium transition-colors ${
+                    targetOec === option.value
+                      ? 'border-white text-white bg-white/10'
+                      : 'border-gray-400 text-gray-400 hover:border-white hover:text-white'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Base Conversion Rate Setting */}
+        <div className="flex justify-center">
+          <div>
+            <div className="text-sm text-blue-400 mb-2 text-center font-medium">Base Conversion Rate</div>
+            <div className="flex items-center justify-center gap-2">
+              <input
+                type="number"
+                value={baseConversionRate}
+                onChange={(e) => setBaseConversionRate(parseFloat(e.target.value) || 0)}
+                min="0"
+                max="100"
+                step="0.1"
+                className="w-16 px-2 py-1 text-xs font-semibold text-white border border-gray-500 rounded text-center bg-transparent"
+              />
+              <span className="text-xs text-white">%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Second Row: Three Prices */}
+      <div className="flex justify-center gap-6 p-3 border border-gray-600 rounded-lg bg-gray-800/30">
         <div className="text-center">
           <div className="text-sm text-gray-400">Original Price</div>
-          <div className="text-2xl font-bold text-blue-100">
-            $<input
-              type="number"
-              value={priceA.toFixed(2)}
-              onChange={handlePriceAInputChange}
-              min={minPrice}
-              max={maxPrice}
-              step="0.01"
-              className="bg-transparent border-none outline-none text-center w-20 text-blue-100 font-bold"
-            />
+          <div className="text-xl font-bold text-blue-400">
+            ${priceA.toFixed(2)}
           </div>
         </div>
         <div className="text-center">
           <div className="text-sm text-gray-400">New Price</div>
-          <div className="text-2xl font-bold text-green-100">
-            $<input
-              type="number"
-              value={priceB.toFixed(2)}
-              onChange={handlePriceBInputChange}
-              min={minPrice}
-              max={maxPrice}
-              step="0.01"
-              className="bg-transparent border-none outline-none text-center w-20 text-green-100 font-bold"
-            />
+          <div className="text-xl font-bold text-green-400">
+            ${priceB.toFixed(2)}
           </div>
         </div>
+        {optimalPrice && (
+          <div className="text-center">
+            <div className="text-sm text-gray-400">Optimal Price</div>
+            <div className="text-xl font-bold text-red-400">
+              ${optimalPrice.toFixed(2)}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Interactive Price Sliders */}
       <div className="p-4 border border-white rounded-lg">
         <h4 className="text-md font-semibold mb-3 text-center text-white">
-          🎚️ Interactive Price Adjustment
+          🎚️ Price Optimization Tool
         </h4>
         
         <div className="relative mb-5">
           {/* Price range bar background */}
           <div className="mx-3">
-            <div className="w-full h-2 bg-gray-200 rounded-full relative overflow-hidden">
-              {/* Range between A and B */}
+            <div className="w-full h-2 bg-gray-700 rounded-full relative overflow-hidden">
+              {/* Original price marker */}
+              <div 
+                className="absolute top-0 h-full w-2 bg-blue-500 z-20"
+                style={{ left: `${priceAPercent}%`, marginLeft: '-1px' }}
+              />
+              {/* Price comparison range */}
               <div 
                 className="absolute top-0 h-full bg-gradient-to-r from-blue-300 to-green-300 opacity-50"
                 style={{
@@ -213,38 +384,45 @@ export default function InteractivePriceChart({
                   width: `${Math.abs(priceBPercent - priceAPercent)}%`
                 }}
               />
+              {/* New price marker */}
+              <div 
+                className="absolute top-0 h-full w-2 bg-green-500 z-20"
+                style={{ left: `${priceBPercent}%`, marginLeft: '-1px' }}
+              />
+              {/* Optimal price marker */}
+              {optimalPricePercent !== null && (
+                <div 
+                  className="absolute top-0 h-full w-2 bg-red-500 z-30"
+                  style={{ left: `${optimalPricePercent}%`, marginLeft: '-1px' }}
+                />
+              )}
             </div>
           </div>
         </div>
 
         {/* Dual sliders */}
         <div className="space-y-5">
-          {/* Original Price slider */}
+          {/* Original Price display */}
           <div className="flex items-center space-x-3 mx-3">
-            <label className="w-24 text-sm font-medium text-white">Original Price:</label>
-            <div className="flex-1 relative">
-              <input
-                type="range"
-                min={minPrice}
-                max={maxPrice}
-                step="0.01"
-                value={priceA}
-                onChange={handlePriceAChange}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                style={{
-                  background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${priceAPercent}%, #e5e7eb ${priceAPercent}%, #e5e7eb 100%)`
-                }}
-              />
+            <label className="w-24 text-sm font-medium text-white">
+              Original Price:
+              <div className="text-xs text-gray-400 mt-1">Fixed</div>
+            </label>
+            <div className="flex-1 flex items-center">
+              <div className="w-full h-2 bg-gray-700 rounded-full relative">
+                <div 
+                  className="absolute top-0 left-0 h-full bg-blue-500 rounded-full"
+                  style={{ width: `${priceAPercent}%` }}
+                />
+                <div 
+                  className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-sm"
+                  style={{ left: `calc(${priceAPercent}% - 8px)` }}
+                />
+              </div>
             </div>
-            <input
-              type="number"
-              value={priceA.toFixed(2)}
-              onChange={handlePriceAInputChange}
-              min={minPrice}
-              max={maxPrice}
-              step="0.01"
-              className="w-16 px-2 py-1 text-xs font-semibold text-blue-100 border border-blue-400 rounded text-center bg-gray-800"
-            />
+            <div className="w-16 px-2 py-1 text-xs font-semibold text-blue-100 border border-blue-400 rounded text-center bg-gray-800">
+              $ {priceA.toFixed(2)}
+            </div>
           </div>
 
           {/* New Price slider */}
@@ -264,51 +442,103 @@ export default function InteractivePriceChart({
                 }}
               />
             </div>
-            <input
-              type="number"
-              value={priceB.toFixed(2)}
-              onChange={handlePriceBInputChange}
-              min={minPrice}
-              max={maxPrice}
-              step="0.01"
-              className="w-16 px-2 py-1 text-xs font-semibold text-green-100 border border-green-400 rounded text-center bg-gray-800"
-            />
+            <div className="w-20 px-2 py-1 text-xs font-semibold text-green-100 border border-green-400 rounded bg-gray-800 flex items-center">
+              <span className="text-green-100">$</span>
+              <input
+                type="number"
+                value={priceB.toFixed(2)}
+                onChange={handlePriceBInputChange}
+                min={minPrice}
+                max={maxPrice}
+                step="0.01"
+                className="bg-transparent border-none outline-none text-center flex-1 text-green-100 font-semibold w-full"
+                style={{ minWidth: '40px' }}
+              />
+            </div>
           </div>
         </div>
 
         {/* Range indicators */}
         <div className="flex justify-between mt-3 mx-3 text-xs text-gray-400">
           <span>Min: ${minPrice.toFixed(2)}</span>
+          {optimalPrice && (
+            <span className="text-red-400 font-medium">
+              Optimal: ${optimalPrice.toFixed(2)} ({targetOec})
+            </span>
+          )}
           <span>Max: ${maxPrice.toFixed(2)}</span>
         </div>
       </div>
 
-      {/* Chart */}
-      <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-          <XAxis dataKey="name" stroke="#888" />
-          <YAxis 
-            stroke="#888" 
-            tickFormatter={(value) => {
-              if (value < 1) {
-                return `${(value * 100).toFixed(1)}%`;
-              } else if (value < 100) {
-                return `${value.toFixed(1)}%`;
-              } else {
-                return `$${value.toLocaleString()}`;
-              }
-            }}
-          />
-          <Tooltip content={<CustomTooltip />} />
-          <Legend />
-          <Bar dataKey="Original" fill="#3B82F6" />
-          <Bar dataKey="New" fill="#10B981" />
-        </BarChart>
-      </ResponsiveContainer>
+      {/* Charts Side by Side */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* Conversion Rate Chart */}
+        <div>
+          <h5 className="text-lg font-semibold mb-3 text-white text-center">Conversion Rate Comparison</h5>
+          <ResponsiveContainer width="100%" height={250}>
+            <BarChart data={[data[0]]} margin={{ top: 20, right: 20, left: 20, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+              <XAxis dataKey="name" stroke="#888" />
+              <YAxis 
+                stroke="#888" 
+                tickFormatter={(value) => `${value.toFixed(2)}%`}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Legend 
+                formatter={(value) => {
+                  switch (value) {
+                    case 'A': return 'Original';
+                    case 'B': return 'New';
+                    case 'Optimal': return 'Optimal';
+                    default: return value;
+                  }
+                }}
+              />
+              <Bar dataKey="A" fill="#3B82F6" />
+              <Bar dataKey="B" fill="#10B981" />
+              <Bar dataKey="Optimal" fill="#EF4444" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Profit & Revenue Chart */}
+        <div>
+          <h5 className="text-lg font-semibold mb-3 text-white text-center">Profit & Revenue Comparison</h5>
+          <ResponsiveContainer width="100%" height={250}>
+            <BarChart data={data.slice(1)} margin={{ top: 20, right: 20, left: 20, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+              <XAxis dataKey="name" stroke="#888" />
+              <YAxis 
+                stroke="#888" 
+                tickFormatter={(value) => {
+                  if (value >= 1000) {
+                    return `$${(value / 1000).toFixed(1)}k`;
+                  } else {
+                    return `$${value.toFixed(0)}`;
+                  }
+                }}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Legend 
+                formatter={(value) => {
+                  switch (value) {
+                    case 'A': return 'Original';
+                    case 'B': return 'New';
+                    case 'Optimal': return 'Optimal';
+                    default: return value;
+                  }
+                }}
+              />
+              <Bar dataKey="A" fill="#3B82F6" />
+              <Bar dataKey="B" fill="#10B981" />
+              <Bar dataKey="Optimal" fill="#EF4444" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
 
       {/* Comparison Stats */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className={`grid ${optimalMetrics ? 'grid-cols-4' : 'grid-cols-3'} gap-4`}>
         <div className="text-center p-4 border border-gray-700 rounded-lg">
           <div className="text-sm text-gray-400">Conversion Change</div>
           <div className={`text-xl font-bold ${currentComparison.priceB.conversionRate > currentComparison.priceA.conversionRate ? 'text-green-400' : 'text-red-400'}`}>
@@ -316,18 +546,38 @@ export default function InteractivePriceChart({
             {(currentComparison.priceB.conversionRate - currentComparison.priceA.conversionRate).toFixed(2)}%
           </div>
         </div>
-        <div className="text-center p-4 border border-gray-700 rounded-lg">
-          <div className="text-sm text-gray-400">Revenue Change</div>
-          <div className={`text-xl font-bold ${currentComparison.priceB.revenue > currentComparison.priceA.revenue ? 'text-green-400' : 'text-red-400'}`}>
-            ${Math.abs(currentComparison.priceB.revenue - currentComparison.priceA.revenue).toFixed(0)}
-          </div>
-        </div>
+
         <div className="text-center p-4 border border-gray-700 rounded-lg">
           <div className="text-sm text-gray-400">Profit Change</div>
           <div className={`text-xl font-bold ${currentComparison.priceB.profit > currentComparison.priceA.profit ? 'text-green-400' : 'text-red-400'}`}>
             ${Math.abs(currentComparison.priceB.profit - currentComparison.priceA.profit).toFixed(0)}
           </div>
         </div>
+        
+        <div className="text-center p-4 border border-gray-700 rounded-lg">
+          <div className="text-sm text-gray-400">Revenue Change</div>
+          <div className={`text-xl font-bold ${currentComparison.priceB.revenue > currentComparison.priceA.revenue ? 'text-green-400' : 'text-red-400'}`}>
+            ${Math.abs(currentComparison.priceB.revenue - currentComparison.priceA.revenue).toFixed(0)}
+          </div>
+        </div>
+
+        {/* Optimal Price Comparison */}
+        {optimalMetrics && (
+          <div className="text-center p-4 border border-red-700 rounded-lg">
+            <div className="text-sm text-gray-400">Optimal vs Current</div>
+            <div className="text-xl font-bold text-red-400">
+              {targetOec === 'profit' ? `$${(optimalMetrics.profit - currentComparison.priceA.profit).toFixed(0)}` :
+               targetOec === 'revenue' ? `$${(optimalMetrics.revenue - currentComparison.priceA.revenue).toFixed(0)}` :
+               `${(optimalMetrics.conversionRate - currentComparison.priceA.conversionRate).toFixed(2)}%`}
+            </div>
+            <div className="text-xs text-gray-500 mt-1">
+              {targetOec === 'profit' ? 'Profit Gain' :
+               targetOec === 'revenue' ? 'Revenue Gain' :
+               'Conversion Gain'}
+            </div>
+          </div>
+        )}
+        
       </div>
     </div>
   );
