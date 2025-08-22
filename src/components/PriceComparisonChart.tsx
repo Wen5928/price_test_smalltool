@@ -82,13 +82,13 @@ export default function PriceComparisonChart({ comparisonData }: PriceComparison
         <div className="text-center p-4 border border-gray-700 rounded-lg">
           <div className="text-sm text-gray-400">Revenue Change</div>
           <div className={`text-xl font-bold ${priceB.revenue > priceA.revenue ? 'text-green-400' : 'text-red-400'}`}>
-            ${Math.abs(priceB.revenue - priceA.revenue).toFixed(0)}
+            {priceB.revenue > priceA.revenue ? '+' : ''}${(priceB.revenue - priceA.revenue).toFixed(0)}
           </div>
         </div>
         <div className="text-center p-4 border border-gray-700 rounded-lg">
           <div className="text-sm text-gray-400">Profit Change</div>
           <div className={`text-xl font-bold ${priceB.profit > priceA.profit ? 'text-green-400' : 'text-red-400'}`}>
-            ${Math.abs(priceB.profit - priceA.profit).toFixed(0)}
+            {priceB.profit > priceA.profit ? '+' : ''}${(priceB.profit - priceA.profit).toFixed(0)}
           </div>
         </div>
       </div>
