@@ -36,11 +36,18 @@ yarn-error.log*
 # vercel
 .vercel
 
-# Claude
+# Claude AI Assistant (exclude from partner sharing)
 .claude
 claude-code-workflows-main
 .playwright-mcp
-CLAUDE.md
+# CLAUDE.md - Keep this commented to include in partner sharing
+# CLAUDE.md
+
+# Partner-specific exclusions
+drafts/
+*.personal.md
+notes/
+scratch/
 
 # typescript
 *.tsbuildinfo
