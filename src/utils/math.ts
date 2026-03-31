@@ -372,3 +372,110 @@ export function generateComparisonData(
     chartData,
   };
 }
+
+// ─── New convenience functions for the single-page redesign ───
+
+export interface SimulationResult {
+  curve: ChartPoint[];
+  optimalPrice: number;
+  currentProfit: number;
+  optimalProfit: number;
+  monthlyDelta: number;
+}
+
+export function getSimulationData(currentPrice: number, costPerItem: number): SimulationResult {
+  const shipping = 5;
+  const transactionFee = 2.9;
+  const traffic = 10000;
+
+  const mu = currentPrice * 1.2;
+  const sigma = currentPrice * 0.3;
+  const totalCost = costPerItem + shipping + (currentPrice * transactionFee / 100);
+  const minPrice = Math.max(totalCost * 1.1, currentPrice * 0.5);
+  const maxPrice = currentPrice * 2;
+
+  const curve = generateChartData(
+    mu, sigma, costPerItem, traffic, minPrice, maxPrice,
+    costPerItem, shipping, transactionFee
+  );
+
+  // Find optimal profit point
+  let optimalPoint = curve[0] || { price: currentPrice, profit: 0 };
+  for (const point of curve) {
+    if (point.profit > optimalPoint.profit) {
+      optimalPoint = point;
+    }
+  }
+
+  // Find current price point (closest match)
+  let currentPoint = curve[0] || { price: currentPrice, profit: 0 };
+  let minDist = Infinity;
+  for (const point of curve) {
+    const dist = Math.abs(point.price - currentPrice);
+    if (dist < minDist) {
+      minDist = dist;
+      currentPoint = point;
+    }
+  }
+
+  return {
+    curve,
+    optimalPrice: optimalPoint.price,
+    currentProfit: currentPoint.profit,
+    optimalProfit: optimalPoint.profit,
+    monthlyDelta: optimalPoint.profit - currentPoint.profit,
+  };
+}
+
+export interface UncertaintyCurve {
+  elasticity: number;
+  label: string;
+  data: ChartPoint[];
+  optimalPrice: number;
+  optimalProfit: number;
+}
+
+export interface UncertaintyCurvesResult {
+  curves: UncertaintyCurve[];
+}
+
+export function getUncertaintyCurves(currentPrice: number, costPerItem: number): UncertaintyCurvesResult {
+  const shipping = 5;
+  const transactionFee = 2.9;
+  const traffic = 10000;
+
+  const mu = currentPrice * 1.2;
+  const totalCost = costPerItem + shipping + (currentPrice * transactionFee / 100);
+  const minPrice = Math.max(totalCost * 1.1, currentPrice * 0.5);
+  const maxPrice = currentPrice * 2;
+
+  const sigmas = [
+    { value: currentPrice * 0.15, label: 'Price Sensitive' },
+    { value: currentPrice * 0.25, label: 'Moderate' },
+    { value: currentPrice * 0.4, label: 'Price Insensitive' },
+  ];
+
+  const curves: UncertaintyCurve[] = sigmas.map(({ value: sigma, label }) => {
+    const data = generateChartData(
+      mu, sigma, costPerItem, traffic, minPrice, maxPrice,
+      costPerItem, shipping, transactionFee
+    );
+
+    let optimalPoint = data[0] || { price: currentPrice, profit: 0 };
+    for (const point of data) {
+      if (point.profit > optimalPoint.profit) {
+        optimalPoint = point;
+      }
+    }
+
+    return {
+      elasticity: sigma,
+      label,
+      data,
+      optimalPrice: optimalPoint.price,
+      optimalProfit: optimalPoint.profit,
+    };
+  });
+
+  return { curves };
+}

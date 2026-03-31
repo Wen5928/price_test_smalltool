@@ -57,3 +57,4 @@ next-env.d.ts
 /dist/
 .next/
 build/
+.gstack/

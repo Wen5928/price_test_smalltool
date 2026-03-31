@@ -1,8 +1,6 @@
 'use client';
 
 import React, { Component, ReactNode } from 'react';
-import toast from 'react-hot-toast';
-
 interface Props {
   children: ReactNode;
   fallback?: ReactNode;
@@ -25,7 +23,6 @@ class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('Error caught by boundary:', error, errorInfo);
-    toast.error('An unexpected error occurred. Please refresh the page.');
   }
 
   render() {
